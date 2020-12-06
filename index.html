@@ -1,49 +1,143 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>My Hakyll Blog - Home</title>
-        <link rel="stylesheet" type="text/css" href="./css/default.css" />
-    </head>
-    <body>
-        <div id="header">
-            <div id="logo">
-                <a href="./">My Hakyll Blog</a>
-            </div>
-            <div id="navigation">
-                <a href="./">Home</a>
-                <a href="./about.html">About</a>
-                <a href="./contact.html">Contact</a>
-                <a href="./archive.html">Archive</a>
-            </div>
+<!doctype html>
+<html lang="ja">
+  <head>
+    
+        
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+    <link rel="canonical" href="https://PotassiumIodide.github.io/" />
+    
+
+    
+    <title>KI's Laboratory</title>
+    
+
+
+    
+    <meta name="description" content="KI's personal blog." />
+    
+
+    <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/default.css" />
+    <link rel="icon" type="image/icon" href="./images/favicon.ico" />
+
+    <script>
+      window.MathJax = {
+        tex: {
+          macros: {
+            diffp: ["{\\frac{\\partial #1}{\\partial #2}}", 2]
+          }
+        }
+      };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script src="https://kit.fontawesome.com/2f54fe6e45.js" async></script>
+  </head>
+
+  <body>
+    <div id="align-contents">
+      <header class="page-header wrapper">
+        <div id="logo">
+          <a href="./"><img class="logo" src="./images/logo.png" alt="KI's Laboratory"></a>
         </div>
+        <nav>
+          <ul class="main-nav">
+            <li><a href="./">Home</a></li>
+            <li><a href="./about.html">About</a></li>
+            <li><a href="./contact.html">Contact</a></li>
+            <li><a href="./archive.html">Archive</a></li>
+          </ul>
+        </nav>
+      </header>
+    
+      <div id="content">
+        <h2>Welcome</h2>
 
-        <div id="content">
-            <h1>Home</h1>
+<p>Welcome to KI's Laboratory!</p>
 
-            <h2>Welcome</h2>
-
-<p>Welcome to my blog!</p>
-
-<p>I've reproduced a list of recent posts here for your reading pleasure:</p>
+<p><a href="https://PotassiumIodide.github.io/about.html">Potassium Iodide</a>の個人サイト</p>
 
 <h2>Posts</h2>
 <ul>
-    
-        <li>
-            <a href="./posts/2015-08-23-example.html">example post</a> - August 23, 2015
-        </li>
-    
+  
+    <li>
+      <a href="./posts/2020-12-06-trachtenberg-system.html">トラハテンベルグ法</a> - 2020/12/06
+    </li>
+  
+    <li>
+      <a href="./posts/2020-12-05-first-post.html">初めての投稿</a> - 2020/12/05
+    </li>
+  
 </ul>
 
-
-<p>…or you can find more in the <a href="./archive.html">archives</a>.</p>
+<ul>
+  
+    <li class="teaser">
+      <article>
+        <div class="article-title">
+          <h1><a class="post-title-link" href="./posts/2020-12-06-trachtenberg-system.html">トラハテンベルグ法</a></h1>
+          <div class="byline">
+            Posted 2020/12/06
+            
+          </div>
+          <div class="tags">
+            
+            Tags: <a title="All pages tagged 'Others'." href="./tags/Others.html">Others</a>
+            
+          </div>
+        </div>
+        <div class="article-body">
+          <p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルグ法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
 
         </div>
-        <div id="footer">
+        <a href="./posts/2020-12-06-trachtenberg-system.html">Read more</a>
+      </article>
+    </li>
+  
+    <li class="teaser">
+      <article>
+        <div class="article-title">
+          <h1><a class="post-title-link" href="./posts/2020-12-05-first-post.html">初めての投稿</a></h1>
+          <div class="byline">
+            Posted 2020/12/05
+            
+          </div>
+          <div class="tags">
+            
+            Tags: <a title="All pages tagged 'First Post'." href="./tags/First%20Post.html">First Post</a>
+            
+          </div>
+        </div>
+        <div class="article-body">
+          <p>このGitHub Pagesにおける最初の投稿です。 ただの動作確認です。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>main <span class="ot">=</span> <span class="fu">putStrLn</span> <span class="st">&quot;Hello World.&quot;</span></span></code></pre></div>
+
+        </div>
+        <a href="./posts/2020-12-05-first-post.html">Read more</a>
+      </article>
+    </li>
+  
+</ul>
+
+<p><a href="./archive.html">アーカイブ</a>でもご覧いただけます。</p>
+
+      </div>
+
+      <footer>
+        <div class="wrapper">
+          <p><small>&copy; 2020 PotassiumIodide</small></p>
+        </div>
+        <div>
+          <p class="hakyll-footer"><small>
             Site proudly generated by
             <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            </small></p>
         </div>
-    </body>
+      </footer>
+    </div>
+  </body>
 </html>

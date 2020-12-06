@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    
+        
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+    <link rel="canonical" href="https://PotassiumIodide.github.io/posts/2020-12-06-trachtenberg-system.html" />
+    
+
+    
+    <title>KI's Laboratory - トラハテンベルグ法</title>
+    
+
+
+    
+    <meta name="description" content="トラハテンベルグ法に関する説明" />
+    
+
+    <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/default.css" />
+    <link rel="icon" type="image/icon" href="../images/favicon.ico" />
+
+    <script>
+      window.MathJax = {
+        tex: {
+          macros: {
+            diffp: ["{\\frac{\\partial #1}{\\partial #2}}", 2]
+          }
+        }
+      };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script src="https://kit.fontawesome.com/2f54fe6e45.js" async></script>
+  </head>
+
+  <body>
+    <div id="align-contents">
+      <header class="page-header wrapper">
+        <div id="logo">
+          <a href="../"><img class="logo" src="../images/logo.png" alt="KI's Laboratory"></a>
+        </div>
+        <nav>
+          <ul class="main-nav">
+            <li><a href="../">Home</a></li>
+            <li><a href="../about.html">About</a></li>
+            <li><a href="../contact.html">Contact</a></li>
+            <li><a href="../archive.html">Archive</a></li>
+          </ul>
+        </nav>
+      </header>
+    
+      <div id="content">
+        <article>
+  <div class="article-title">
+    <h1>トラハテンベルグ法</h1>
+    <div class="byline">
+      Posted 2020/12/06
+      
+    </div>
+    <div class="tags">
+      
+      Tags: <a title="All pages tagged 'Others'." href="../tags/Others.html">Others</a>
+      
+    </div>
+  </div>
+  <div class="article-body">
+    <p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルグ法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
+<!--more-->
+<h2 id="トラハテンベルグ法とは">トラハテンベルグ法とは</h2>
+<p>各計算を簡単に行ういくつかのアルゴリズムを組み合わせることで、巨大な数も高速に計算することができるシステムです。 このシステムは、ナチスの強制収容所にいたロシア系ユダヤ人のエンジニア、ヤコウ・トラハテンベルグ(Jakow Trachtenberg)によって開発されました。</p>
+<h2 id="一般的な乗算アルゴリズム">一般的な乗算アルゴリズム</h2>
+<p>一般的な乗算を、空間複雑性を小さく抑えて<span class="math inline">\(a \times b\)</span>を行います。 つまり、一時的な結果をできるだけメモリに残さず計算を行います。 これは多項式の最後の一桁を乗算することで、最後の一桁が決定されることに着目します。これを一時的な結果として保存し、次の計算から最後の一桁を求めるには、この一桁に影響を与えるものすべてを必要とします。 仮の結果<span class="math inline">\(a\)</span>の最後の一桁に<span class="math inline">\(b\)</span>の最後の一桁を掛け合わせたものと、<span class="math inline">\(a\)</span>の最後の一桁に<span class="math inline">\(b\)</span>の次の一桁を掛けたものが計算され、最後の二桁が正しい仮の結果として現れます。</p>
+<p>一般的には、最終結果の各位置<span class="math inline">\(n\)</span>に対して、 <span class="math display">\[
+  (\mbox{$a$の$i$桁目}) \times (\mbox{$b$の$n-i$桁目})
+\]</span> をすべての<span class="math inline">\(i\)</span>について足し合わせます。 このアルゴリズムを習得すると、4桁の数字の乗算を暗算できるようになります。 最終的な結果だけを書き留めておきます。右端の数字から始まり、左端の数字で終わるように書き出します。</p>
+<p>トラハテンベルグはこのアルゴリズムを、2桁の数字を1桁で乗算する一種のペアワイズ乗算として定義しており、基本的には結果の中間の1桁だけを保持しています。このペアワイズ乗算で上記のアルゴリズムを実行することで、一時的な結果を保持する必要はさらに少なくなります。</p>
+<div class="example">
+<p><strong>Example</strong> [<span class="math inline">\(123456 \times 789\)</span>]</p>
+<ol type="1">
+<li>答えの右端の桁を求めるために、最初の桁から乗算を始めます:
+<ul>
+<li><span class="math inline">\(9 \times 6\)</span>の一の位は<span class="math inline">\(4\)</span>。</li>
+<li>結果の一の位を<span class="math inline">\(4\)</span>とし、<span class="math inline">\(5\)</span>を十の位に繰り上げる。</li>
+</ul></li>
+<li>答えの十の位を求めるために、十の位の乗算を始めます:
+<ul>
+<li>(<span class="math inline">\(9 \times 5\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(9 \times 6\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 6\)</span>の一の位): <span class="math display">\[
+ 5 + 5 + 8 = 18
+\]</span></li>
+<li>結果の十の位は<span class="math inline">\(8\)</span>とし、<span class="math inline">\(1\)</span>を百の位に繰り上げます。</li>
+</ul></li>
+<li>答えの百の位を求めるために、百の位の乗算を始めます:
+<ul>
+<li>(<span class="math inline">\(9 \times 4\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(9 \times 5\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 5\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 6\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(7 \times 6\)</span>の一の位): <span class="math display">\[
+1 + 6 + 4 + 4 + 0 + 2 = 17
+\]</span></li>
+<li>結果の百の位を<span class="math inline">\(7\)</span>とし、<span class="math inline">\(1\)</span>を次の位に繰り上げる。</li>
+</ul></li>
+<li>答えの千の位を求めるために、千の蔵の乗算を始めます：
+<ul>
+<li>(<span class="math inline">\(9 \times 3\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(9 \times 4\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 4\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 5\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(7 \times 5\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(7 \times 6\)</span>の十の位)<span class="math inline">\(+\)</span>百の位からの繰り上げ: <span class="math display">\[
+1 + 7 + 3 + 2 + 4 + 5 + 4 = 26
+\]</span></li>
+<li>結果の千の位を<span class="math inline">\(6\)</span>とし、<span class="math inline">\(2\)</span>を万の位に繰り上げる。</li>
+</ul></li>
+<li>残りの桁を求めるために、同じ方法を繰り返す。</li>
+</ol>
+</div>
+  </div>
+</article>
+      </div>
+
+      <footer>
+        <div class="wrapper">
+          <p><small>&copy; 2020 PotassiumIodide</small></p>
+        </div>
+        <div>
+          <p class="hakyll-footer"><small>
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            </small></p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

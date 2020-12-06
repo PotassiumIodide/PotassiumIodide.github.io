@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Potassium Iodide's Lab</title>
+        <link>https://PotassiumIodide.github.io</link>
+        <description><![CDATA[My Hakyll blog]]></description>
+        <atom:link href="https://PotassiumIodide.github.io/rss.xml" rel="self"
+                   type="application/rss+xml" />
+        <lastBuildDate>Sun, 06 Dec 2020 00:00:00 UT</lastBuildDate>
+        <item>
+    <title>トラハテンベルグ法</title>
+    <link>https://PotassiumIodide.github.io/posts/2020-12-06-trachtenberg-system.html</link>
+    <description><![CDATA[<p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルグ法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
+
+
+<a href="https://PotassiumIodide.github.io/posts/2020-12-06-trachtenberg-system.html">Read more »</a>]]></description>
+    <pubDate>Sun, 06 Dec 2020 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/posts/2020-12-06-trachtenberg-system.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+<item>
+    <title>初めての投稿</title>
+    <link>https://PotassiumIodide.github.io/posts/2020-12-05-first-post.html</link>
+    <description><![CDATA[<p>このGitHub Pagesにおける最初の投稿です。 ただの動作確認です。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="https://PotassiumIodide.github.io#cb1-1" aria-hidden="true"></a>main <span class="ot">=</span> <span class="fu">putStrLn</span> <span class="st">&quot;Hello World.&quot;</span></span></code></pre></div>
+
+
+<a href="https://PotassiumIodide.github.io/posts/2020-12-05-first-post.html">Read more »</a>]]></description>
+    <pubDate>Sat, 05 Dec 2020 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/posts/2020-12-05-first-post.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+
+    </channel>
+</rss>
