@@ -56,18 +56,20 @@
     
       <div id="content">
         <article>
-  <div class="article-title">
-    <h1>トラハテンベルグ法</h1>
-    <div class="byline">
-      Posted 2020/12/06
+  <header class="post-info">
+    <h2 class="post-title">トラハテンベルグ法</h2>
+    <p class="post-date">12/06 <span>2020</span></p>
+    <div class="post-author">
+      
+        by PotassiumIodide
       
     </div>
-    <div class="tags">
+    <div class="post-tags">
       
       Tags: <a title="All pages tagged 'Others'." href="../tags/Others.html">Others</a>
       
     </div>
-  </div>
+  </header>
   <div class="article-body">
     <p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルグ法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
 <!--more-->
@@ -79,8 +81,11 @@
   (\mbox{$a$の$i$桁目}) \times (\mbox{$b$の$n-i$桁目})
 \]</span> をすべての<span class="math inline">\(i\)</span>について足し合わせます。 このアルゴリズムを習得すると、4桁の数字の乗算を暗算できるようになります。 最終的な結果だけを書き留めておきます。右端の数字から始まり、左端の数字で終わるように書き出します。</p>
 <p>トラハテンベルグはこのアルゴリズムを、2桁の数字を1桁で乗算する一種のペアワイズ乗算として定義しており、基本的には結果の中間の1桁だけを保持しています。このペアワイズ乗算で上記のアルゴリズムを実行することで、一時的な結果を保持する必要はさらに少なくなります。</p>
-<div class="example">
+<div class="box example">
+<div class="box-title">
 <p><strong>Example</strong> [<span class="math inline">\(123456 \times 789\)</span>]</p>
+</div>
+<div class="box-body">
 <ol type="1">
 <li>答えの右端の桁を求めるために、最初の桁から乗算を始めます:
 <ul>
@@ -110,6 +115,7 @@
 </ul></li>
 <li>残りの桁を求めるために、同じ方法を繰り返す。</li>
 </ol>
+</div>
 </div>
   </div>
 </article>
