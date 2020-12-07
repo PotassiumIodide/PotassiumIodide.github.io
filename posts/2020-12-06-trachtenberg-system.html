@@ -59,7 +59,10 @@
       </header>
     
       <div id="content">
-        <article>
+        <aside>
+  
+</aside>
+<article>
   <header class="post-info">
     <h2 class="post-title">トラハテンベルグ法</h2>
     <p class="post-date">12/06 <span>2020</span></p>
@@ -75,11 +78,18 @@
     </div>
   </header>
   <div class="article-body">
-    <p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルグ法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
+    
+<div class="toc"><div class="header">Table of Contents</div>
+<ul>
+<li><a href="#トラハテンベルグ法とは">トラハテンベルグ法とは</a></li>
+<li><a href="#一般的な乗算アルゴリズム">一般的な乗算アルゴリズム</a></li>
+</ul>
+</div>
+<p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルグ法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
 <!--more-->
-<h2 id="トラハテンベルグ法とは">トラハテンベルグ法とは</h2>
+<h1 id="トラハテンベルグ法とは">トラハテンベルグ法とは</h1>
 <p>各計算を簡単に行ういくつかのアルゴリズムを組み合わせることで、巨大な数も高速に計算することができるシステムです。 このシステムは、ナチスの強制収容所にいたロシア系ユダヤ人のエンジニア、ヤコウ・トラハテンベルグ(Jakow Trachtenberg)によって開発されました。</p>
-<h2 id="一般的な乗算アルゴリズム">一般的な乗算アルゴリズム</h2>
+<h1 id="一般的な乗算アルゴリズム">一般的な乗算アルゴリズム</h1>
 <p>一般的な乗算を、空間複雑性を小さく抑えて<span class="math inline">\(a \times b\)</span>を行います。 つまり、一時的な結果をできるだけメモリに残さず計算を行います。 これは多項式の最後の一桁を乗算することで、最後の一桁が決定されることに着目します。これを一時的な結果として保存し、次の計算から最後の一桁を求めるには、この一桁に影響を与えるものすべてを必要とします。 仮の結果<span class="math inline">\(a\)</span>の最後の一桁に<span class="math inline">\(b\)</span>の最後の一桁を掛け合わせたものと、<span class="math inline">\(a\)</span>の最後の一桁に<span class="math inline">\(b\)</span>の次の一桁を掛けたものが計算され、最後の二桁が正しい仮の結果として現れます。</p>
 <p>一般的には、最終結果の各位置<span class="math inline">\(n\)</span>に対して、 <span class="math display">\[
   (\mbox{$a$の$i$桁目}) \times (\mbox{$b$の$n-i$桁目})
