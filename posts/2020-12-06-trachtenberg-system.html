@@ -59,32 +59,24 @@
       </header>
     
       <div id="content">
-        <aside>
-  
-</aside>
-<article>
-  <header class="post-info">
-    <h2 class="post-title">トラハテンベルグ法</h2>
-    <p class="post-date">12/06 <span>2020</span></p>
-    <div class="post-author">
-      
-        by PotassiumIodide
-      
-    </div>
-    <div class="post-tags">
-      
-      Tags: <a title="All pages tagged 'Others'." href="../tags/Others.html">Others</a>
-      
-    </div>
-  </header>
+        <header class="post-info">
+  <h2 class="post-title">トラハテンベルグ法</h2>
+  <p class="post-date">12/06 <span>2020</span></p>
+  <div class="post-author">
+    
+      by PotassiumIodide
+    
+  </div>
+  <div class="post-tags">
+    
+    Tags: <a title="All pages tagged 'Others'." href="../tags/Others.html">Others</a>
+    
+  </div>
+</header>
+<div class="post-contents wrapper">
+  <article>
   <div class="article-body">
     
-<div class="toc"><div class="header">目次</div>
-<ul>
-<li><a href="#トラハテンベルグ法とは">トラハテンベルグ法とは</a></li>
-<li><a href="#一般的な乗算アルゴリズム">一般的な乗算アルゴリズム</a></li>
-</ul>
-</div>
 <p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルグ法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
 <!--more-->
 <h1 id="トラハテンベルグ法とは">トラハテンベルグ法とは</h1>
@@ -131,8 +123,55 @@
 </ol>
 </div>
 </div>
-  </div>
+<h1 id="その他の乗算アルゴリズム">その他の乗算アルゴリズム</h1>
+<p>これらの掛け算アルゴリズムを実行する際には、以下の「ステップ」を適用しなければなりません。 答えは、最下位の桁から始めて左に移動しながら、一度に一桁ずつ見つけなければなりません。最後の計算は、乗算子の先頭のゼロから行います。 各桁には隣人、つまり右端の桁があります。一番右の桁の隣人は末尾のゼロです。 半分」演算はトラヒテンベルグシステムでは特別な意味を持っています。これは「桁の半分を切り捨てて半分にする」という意味ですが、トラヒテンベルグ方式に従う人はスピードを重視して、この半分にする処理を瞬時に行うように勧められています。つまり、「7の半分は3.5だから3」と考えるのではなく、「7, 3」と考えることを提案しているのです。これで計算がかなり速くなります。このようにして、10や9から数字を引くための表を暗記します。 そして、ルールが隣の数字の半分を足すことを要求するときはいつでも、現在の数字が奇数の場合は常に5を足します。これで、次の桁の計算で0.5を落とすことを補うことができます。</p>
+<h2 id="倍">2倍</h2>
+<p><strong>ルール: </strong> 各桁を2倍する(繰り上がりも考慮する)</p>
+<p><strong>例: </strong> <span class="math inline">\(8624 \times 2\)</span></p>
+<p>左から右へ計算する</p>
+<p><span class="math display">\[\begin{align*}
+   &amp;8 + 8 = 16, \\
+   &amp;6 + 6 = 12 \quad \mbox{(1繰り上げ)}, \\
+   &amp;2 + 2 = 4, \\
+   &amp;4 + 4 = 8, \\
+   &amp;8624 \times 2 = 17248 \\
+\end{align*}\]</span></p>
+<p><strong>例: </strong> <span class="math inline">\(76892 \times 2\)</span></p>
+<p>左から右へ計算する</p>
+<p><span class="math display">\[\begin{align*}
+   &amp;7 + 7 = 14, \\
+   &amp;6 + 6 = 12, \\
+   &amp;8 + 8 = 16, \\
+   &amp;9 + 9 = 18, \\
+   &amp;2 + 2 = 4, \\
+   &amp;76892 \times 2 = 153484
+\end{align*}\]</span></p>
+<h2 id="倍-1">3倍</h2>
+<p><strong>ルール: </strong> 1. 最大桁を10から引く 2. 残った桁を9から引く 3. 結果を2倍する 4. 隣の桁の半分を右に足し、桁が奇数の場合<span class="math inline">\(5\)</span>を<strong>足す</strong> 5. ゼロを導くために、隣の桁の半分から2を引く</p>
+<p><strong>例: </strong> <span class="math inline">\(492 \times 3 = 1476\)</span></p>
+<p>右から左へ計算する</p>
+<p><span class="math display">\[\begin{align*}
+(10 - 2) \times 2 + \mbox{ 0の半分(0)} = 16. \mbox{ $6$と書き、$1$を繰り上げる}
+\end{align*}\]</span></p>
+<h1 id="その他の方法">その他の方法</h1>
 </article>
+  <aside>
+    <h3 class="sub-title">目次</h3>
+    <div id="toc">
+      <ul>
+      <li><a href="#トラハテンベルグ法とは">トラハテンベルグ法とは</a></li>
+      <li><a href="#一般的な乗算アルゴリズム">一般的な乗算アルゴリズム</a></li>
+      <li><a href="#その他の乗算アルゴリズム">その他の乗算アルゴリズム</a>
+      <ul>
+      <li><a href="#倍">2倍</a></li>
+      <li><a href="#倍-1">3倍</a></li>
+      </ul></li>
+      <li><a href="#その他の方法">その他の方法</a></li>
+      </ul>
+    </div>
+  </aside>
+</div>
+  </div>
       </div>
 
       <footer>
