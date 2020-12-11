@@ -26,9 +26,13 @@
 
     <script>
       window.MathJax = {
+        loader: {
+          load: ['[tex]/html']
+        },
         tex: {
+          packages: {'[+]': ['html']},
           macros: {
-            diffp: ["{\\frac{\\partial #1}{\\partial #2}}", 2]
+            vin: "{\\style{display: inline-block; transform: rotate(-90deg)}{\\in}}",
           }
         }
       };
@@ -72,7 +76,32 @@
     <li class="teaser">
       <article>
         <div class="article-title">
-          <h1><a class="post-title-link" href="./posts/2020-12-06-trachtenberg-system.html">トラハテンベルグ法</a></h1>
+          <h1><a class="post-title-link" href="./posts/2020-12-07-01-axioms.html">圏論ゼミ0x00回 公理的集合論について</a></h1>
+          <div class="byline">
+            Posted 12/07
+            
+            by PotassiumIodide
+            
+          </div>
+          <div class="tags">
+            
+            Tags: <a title="All pages tagged 'Category Theory'." href="./tags/Category%20Theory.html">Category Theory</a>, <a title="All pages tagged '圏論'." href="./tags/%E5%9C%8F%E8%AB%96.html">圏論</a>, <a title="All pages tagged '自主ゼミ'." href="./tags/%E8%87%AA%E4%B8%BB%E3%82%BC%E3%83%9F.html">自主ゼミ</a>
+            
+          </div>
+        </div>
+        <div class="article-body">
+          
+<p>本記事は圏論の自主ゼミを行う際に使用する補助教材である。 圏論は様々な数学の分野を考察の対象とするが、集合論も例外ではない。 しかし、素朴集合論に基づく集合の定義では問題が生じる。</p>
+
+        </div>
+        <a href="./posts/2020-12-07-01-axioms.html">Read more</a>
+      </article>
+    </li>
+  
+    <li class="teaser">
+      <article>
+        <div class="article-title">
+          <h1><a class="post-title-link" href="./posts/2020-12-06-trachtenberg-system.html">トラハテンベルク法</a></h1>
           <div class="byline">
             Posted 12/06
             
@@ -87,7 +116,7 @@
         </div>
         <div class="article-body">
           
-<p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルグ法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
+<p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルク法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
 
         </div>
         <a href="./posts/2020-12-06-trachtenberg-system.html">Read more</a>

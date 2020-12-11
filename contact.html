@@ -24,9 +24,13 @@
 
     <script>
       window.MathJax = {
+        loader: {
+          load: ['[tex]/html']
+        },
         tex: {
+          packages: {'[+]': ['html']},
           macros: {
-            diffp: ["{\\frac{\\partial #1}{\\partial #2}}", 2]
+            vin: "{\\style{display: inline-block; transform: rotate(-90deg)}{\\in}}",
           }
         }
       };

@@ -26,9 +26,13 @@
 
     <script>
       window.MathJax = {
+        loader: {
+          load: ['[tex]/html']
+        },
         tex: {
+          packages: {'[+]': ['html']},
           macros: {
-            diffp: ["{\\frac{\\partial #1}{\\partial #2}}", 2]
+            vin: "{\\style{display: inline-block; transform: rotate(-90deg)}{\\in}}",
           }
         }
       };
@@ -64,7 +68,7 @@
 <ul>
   
     <li>
-      <a href="../posts/2020-12-06-trachtenberg-system.html">トラハテンベルグ法</a> - 2020/12/06
+      <a href="../posts/2020-12-06-trachtenberg-system.html">トラハテンベルク法</a> - 2020/12/06
     </li>
   
 </ul>

@@ -24,9 +24,13 @@
 
     <script>
       window.MathJax = {
+        loader: {
+          load: ['[tex]/html']
+        },
         tex: {
+          packages: {'[+]': ['html']},
           macros: {
-            diffp: ["{\\frac{\\partial #1}{\\partial #2}}", 2]
+            vin: "{\\style{display: inline-block; transform: rotate(-90deg)}{\\in}}",
           }
         }
       };
@@ -64,7 +68,11 @@
 <ul>
   
     <li>
-      <a href="./posts/2020-12-06-trachtenberg-system.html">トラハテンベルグ法</a> - 2020/12/06
+      <a href="./posts/2020-12-07-01-axioms.html">圏論ゼミ0x00回 公理的集合論について</a> - 2020/12/07
+    </li>
+  
+    <li>
+      <a href="./posts/2020-12-06-trachtenberg-system.html">トラハテンベルク法</a> - 2020/12/06
     </li>
   
     <li>
@@ -74,7 +82,7 @@
 </ul>
 
 <h2>Tags</h2>
-<div class="tagslist"><a href="./tags/First%20Post.html">First Post (1)</a>, <a href="./tags/Others.html">Others (1)</a></div>
+<div class="tagslist"><a href="./tags/Category%20Theory.html">Category Theory (1)</a>, <a href="./tags/First%20Post.html">First Post (1)</a>, <a href="./tags/Others.html">Others (1)</a>, <a href="./tags/%E5%9C%8F%E8%AB%96.html">圏論 (1)</a>, <a href="./tags/%E8%87%AA%E4%B8%BB%E3%82%BC%E3%83%9F.html">自主ゼミ (1)</a></div>
       </div>
 
       <footer>

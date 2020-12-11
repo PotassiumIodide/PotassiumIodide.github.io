@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    
+        
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+    <link rel="canonical" href="https://PotassiumIodide.github.io/posts/2020-12-07-01-axioms.html" />
+    
+
+    
+    <title>KI's Laboratory - 圏論ゼミ0x00回 公理的集合論について</title>
+    
+
+
+    
+    <meta name="description" content="圏論の自主ゼミで仮定する公理系について" />
+    
+
+    <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/default.css" />
+    <link rel="icon" type="image/icon" href="../images/favicon.ico" />
+
+    <script>
+      window.MathJax = {
+        loader: {
+          load: ['[tex]/html']
+        },
+        tex: {
+          packages: {'[+]': ['html']},
+          macros: {
+            vin: "{\\style{display: inline-block; transform: rotate(-90deg)}{\\in}}",
+          }
+        }
+      };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script src="https://kit.fontawesome.com/2f54fe6e45.js" async></script>    
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/railscasts.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+  </head>
+
+  <body>
+    <div id="align-contents">
+      <header class="page-header wrapper">
+        <div id="logo">
+          <a href="../"><img class="logo" src="../images/logo.png" alt="KI's Laboratory"></a>
+        </div>
+        <nav>
+          <ul class="main-nav">
+            <li><a href="../">Home</a></li>
+            <li><a href="../about.html">About</a></li>
+            <li><a href="../contact.html">Contact</a></li>
+            <li><a href="../archive.html">Archive</a></li>
+          </ul>
+        </nav>
+      </header>
+    
+      <div id="content">
+        <header class="post-info">
+  <h2 class="post-title">圏論ゼミ0x00回 公理的集合論について</h2>
+  <p class="post-date">12/07 <span>2020</span></p>
+  <div class="post-author">
+    
+      by PotassiumIodide
+    
+  </div>
+  <div class="post-tags">
+    
+    Tags: <a title="All pages tagged 'Category Theory'." href="../tags/Category%20Theory.html">Category Theory</a>, <a title="All pages tagged '圏論'." href="../tags/%E5%9C%8F%E8%AB%96.html">圏論</a>, <a title="All pages tagged '自主ゼミ'." href="../tags/%E8%87%AA%E4%B8%BB%E3%82%BC%E3%83%9F.html">自主ゼミ</a>
+    
+  </div>
+</header>
+<div class="post-contents wrapper">
+  <article>
+  <div class="article-body">
+    
+<p>本記事は圏論の自主ゼミを行う際に使用する補助教材である。 圏論は様々な数学の分野を考察の対象とするが、集合論も例外ではない。 しかし、素朴集合論に基づく集合の定義では問題が生じる。</p>
+<!--more-->
+<h1 id="圏論のための集合">圏論のための集合</h1>
+<p>多くの(素朴)集合論の入門書では、集合は以下のように定義されている:</p>
+<!--more-->
+<div id="naive-set" class="box definition">
+<div class="box-title">
+<p><strong>定義</strong> (素朴集合論における集合)</p>
+</div>
+<div class="box-body">
+<p><strong>集合</strong>とは、いくつかのものをひとまとめにして考えた’ものの集まり’のことである(cf.  [<a href="https://www.amazon.co.jp/%E9%9B%86%E5%90%88%E3%83%BB%E4%BD%8D%E7%9B%B8%E5%85%A5%E9%96%80-%E6%9D%BE%E5%9D%82%E5%92%8C%E5%A4%AB-%E6%95%B0%E5%AD%A6%E5%85%A5%E9%96%80%E3%82%B7%E3%83%AA%E3%83%BC%E3%82%BA-%E6%9D%BE%E5%9D%82-%E5%92%8C%E5%A4%AB-ebook/dp/B07L54BRGG/ref=sr_1_2?__mk_ja_JP=%E3%82%AB%E3%82%BF%E3%82%AB%E3%83%8A&amp;dchild=1&amp;keywords=%E9%9B%86%E5%90%88+%E4%BD%8D%E7%9B%B8&amp;qid=1607608445&amp;sr=8-2">松阪和夫, 集合・位相入門, 岩波書店, 1968</a>])</p>
+<p><strong>集合</strong>とは、“ある特定の性質をそなえたものの集まり”のことである(cf. [<a href="https://www.amazon.co.jp/%E9%9B%86%E5%90%88%E3%81%A8%E4%BD%8D%E7%9B%B8-%E5%A2%97%E8%A3%9C%E6%96%B0%E8%A3%85%E7%89%88-%E6%95%B0%E5%AD%A6%E3%82%B7%E3%83%AA%E3%83%BC%E3%82%BA-%E5%86%85%E7%94%B0-%E4%BC%8F%E4%B8%80/dp/4785314125/ref=sr_1_2?__mk_ja_JP=%E3%82%AB%E3%82%BF%E3%82%AB%E3%83%8A&amp;dchild=1&amp;keywords=%E9%9B%86%E5%90%88+%E5%86%85%E7%94%B0&amp;qid=1603425665&amp;sr=8-2">内田伏一, 集合と位相, 裳華房, 1986</a>])</p>
+</div>
+</div>
+<p>集合に属すか、属さないか、ハッキリ区別できるようなものでなければ集合とはならない (例えば、「大きな数の集まり」は様々な要因によって、その数が「大きい」かどうかの 判断は変わるため、集合とならない等)といった注意はなされるものの、定義は曖昧である。 このため、以下のようなよく知られたパラドックスが生じる:</p>
+<div id="cantors-paradox" class="box">
+<div class="box-title">
+<p>カントールの逆理(Cantor’s paradox)</p>
+</div>
+<div class="box-body">
+<p>すべての集合の集まりは集合であるかを考える。 すべての集合の集まりを<span class="math inline">\(X\)</span>とおき、<span class="math inline">\(X\)</span>は集合であると仮定する。 このとき、<span class="math inline">\(X\)</span>の各部分集合<span class="math inline">\(Y \subseteq X\)</span>もまた集合であるから、 任意の<span class="math inline">\(Y \in \mathcal{P}(X)\)</span>に対し、<span class="math inline">\(Y \in X\)</span>が成り立つ。 したがって、<span class="math inline">\(\mathcal{P}(X) \subseteq X\)</span>となり、 <span class="math inline">\(|\mathcal{P}(X)| \leq |X|\)</span>となるが、これは矛盾。 したがって、<span class="math inline">\(X\)</span>は集合ではない。</p>
+</div>
+</div>
+<p>「すべての集合の集まり<span class="math inline">\(X\)</span>が集合であると仮定することで、 <span class="math inline">\(X \in X\)</span>なるものを考えている」ことからも違和感を覚える。</p>
+<p>もし上の<span class="math inline">\(X\)</span>のような「自分自身を元として含む集合」を認めるとすると、 「<span class="math inline">\(x \in x\)</span>」ないし、「<span class="math inline">\(x \notin x\)</span>」という条件を考えるのは 不自然なことではない。これにより、以下のようなパラドックスが生じる:</p>
+<div id="russels-paradox" class="box">
+<div class="box-title">
+<p>ラッセルの逆理(Russel’s paradox)</p>
+</div>
+<div class="box-body">
+<p><span class="math inline">\(Y\)</span>を<span class="math inline">\(x \in x\)</span>を満たす<span class="math inline">\(x\)</span>全体の集まり、すなわち</p>
+<p><span class="math display">\[
+      Y = \{ x | x \notin x \}
+  \]</span></p>
+<p>とおく。集合全体の集まりを集合と認めると、<span class="math inline">\(x \notin x\)</span>という条件を満たす ものの集まりである<span class="math inline">\(Y\)</span>も集合である。このとき、<span class="math inline">\(Y \in Y\)</span>であるか、 <span class="math inline">\(Y \notin Y\)</span>であるかを考える。</p>
+<ol type="i">
+<li><p><span class="math inline">\(Y \in Y\)</span>と仮定する。<span class="math inline">\(Y\)</span>は条件<span class="math inline">\(Y \notin Y\)</span>を満たさないため、 <span class="math inline">\(Y\)</span>は<span class="math inline">\(Y\)</span>自身の元ではないが、これは<span class="math inline">\(Y \in Y\)</span>に矛盾。</p></li>
+<li><p><span class="math inline">\(Y \notin Y\)</span>と仮定する。<span class="math inline">\(Y\)</span>は条件<span class="math inline">\(Y \notin Y\)</span>を満たすため、 <span class="math inline">\(Y\)</span>は<span class="math inline">\(Y\)</span>の元であるが、これは<span class="math inline">\(Y \notin Y\)</span>に矛盾。</p></li>
+</ol>
+</div>
+</div>
+<p>このように、集合の構成を無制限に行うと、理論が破綻してしまうため、公理を設け、 理論の破綻を防ぐ必要がある。</p>
+<h1 id="圏論記事で仮定する公理">圏論記事で仮定する公理</h1>
+<p>まずは、集合を“集まり”と記述するのではなく集合<span class="math inline">\(X, Y\)</span>には(<span class="math inline">\(X\)</span>は<span class="math inline">\(Y\)</span>の要素であるという) 所属関係<span class="math inline">\(X \in Y\)</span>が定められており、集合はこの関係<span class="math inline">\(\in\)</span>を使って厳密に定式化されたある公理を満たしていると考える。</p>
+<div id="subseteq-and-eq" class="box definition">
+<div class="box-title">
+<p><strong>定義</strong> (包含関係<span class="math inline">\(\subseteq\)</span>と等号<span class="math inline">\(=\)</span>)</p>
+</div>
+<div class="box-body">
+<p>集合<span class="math inline">\(X, Y\)</span>の間の包含関係<span class="math inline">\(\subseteq\)</span>を次のように定義する:</p>
+<p><span class="math display">\[
+    X \subseteq Y \overset{\textit{def}}{\Longleftrightarrow} \mbox{すべての$e \in X$に対し, \ $e \in Y$}
+  \]</span></p>
+<p>また、集合における等号を以下のように定める:</p>
+<p><span class="math display">\[
+      X = Y \overset{\textit{def}}{\Longleftrightarrow} X \subseteq Y \mbox{ かつ } Y \subseteq X
+  \]</span></p>
+</div>
+</div>
+<h2 id="ツェルメロの公理系z公理系">ツェルメロの公理系(Z公理系)</h2>
+<p><strong>ツェルメロの公理(Zermelo’s axiom)</strong>は次の8つの公理からなる。</p>
+<div id="extensionality" class="box axiom">
+<div class="box-title">
+<p><strong>公理1</strong> (外延性の公理(axiom of extensionality))</p>
+</div>
+<div class="box-body">
+<p><span class="math display">\[
+  X = Y \mbox{ かつ } Y \in Z \mbox{ ならば } X \in Z
+\]</span></p>
+<p>一階述語論理による記述: <span class="math display">\[
+  \forall Y (X = Y \land Y \in Z \to X \in Z)
+\]</span></p>
+</div>
+</div>
+<p>等号(<span class="math inline">\(=\)</span>)の定義から、<span class="math inline">\(W \in Y\)</span>の左辺に関する置き換え:</p>
+<p><span class="math display">\[
+  X = Y \mbox{ かつ } W \in Y \mbox{ ならば } W \in X
+\]</span></p>
+<p>が直ちに導かれる。時として記号<span class="math inline">\(\in\)</span>と<span class="math inline">\(=\)</span>を、集合に関する独立した基本記号と 考えることもあるが、この場合外延性の公理は<span class="math inline">\(=\)</span>に関する基本性質の1つとなり、 <a href="#subseteq-and-eq">等号の定義</a>が外延性の公理となる。</p>
+<div id="empty-set" class="box axiom">
+<div class="box-title">
+<p><strong>公理2</strong> (空集合の公理(axiom of empty set))</p>
+</div>
+<div class="box-body">
+<p>要素を持たない集合<span class="math inline">\(\emptyset\)</span>が存在する。すなわち、<span class="math inline">\(\emptyset\)</span>及び 任意の<span class="math inline">\(x\)</span>に対し、<span class="math inline">\(x \notin \emptyset\)</span>が成立する。この集合<span class="math inline">\(\emptyset\)</span> を<strong>空集合(empty set)</strong>という。</p>
+<p>一階述語論理による記述: <span class="math display">\[
+  \exists \emptyset (\forall x ( x \notin \emptyset))
+\]</span></p>
+</div>
+</div>
+<p><a href="#subseteq-and-eq">集合の等号の定義</a>から、空集合は一意に定まる。すなわち、 <span class="math inline">\(\emptyset, \emptyset'\)</span>がどちらも空集合ならば <span class="math inline">\(\emptyset = \emptyset'\)</span>となる。</p>
+<div id="pairing" class="box axiom">
+<div class="box-title">
+<p><strong>公理3</strong> (対の公理(axiom of paring))</p>
+</div>
+<div class="box-body">
+<p>任意の2つの集合<span class="math inline">\(X, Y\)</span>に対して, <span class="math display">\[
+  Z \in P \Longleftrightarrow Z = X \mbox{ または } Z = Y
+\]</span> となるような集合<span class="math inline">\(P\)</span>が存在する。</p>
+<p>一階述語論理による記述: <span class="math display">\[
+  \exists P (Z \in P \to Z = X \lor Z = Y)
+\]</span></p>
+</div>
+</div>
+<p><a href="#subseteq-and-eq">集合の等号の定義</a>から、対は一意に定まる。これを<span class="math inline">\(P = \{ X, Y \}\)</span>と 書くことにする。この公理により、<strong>一元集合(unit set)</strong>、つまり ただ1つの要素だけを持つ集合<span class="math inline">\(\{ x \} = \{ x, x \}\)</span>の存在が保証され、 <strong>順序対(ordered pair)</strong><span class="math inline">\(\langle x, y \rangle = \{ \{ x \}, \{ x, y \} \}\)</span>の構成が 可能になる。</p>
+<div id="power-set" class="box axiom">
+<div class="box-title">
+<p><strong>公理4</strong> (冪集合の公理(axiom of power set))</p>
+</div>
+<div class="box-body">
+<p>任意の集合<span class="math inline">\(X\)</span>に対して、 <span class="math display">\[
+  X' \in P \Longleftrightarrow X' \subseteq X
+\]</span> がすべての<span class="math inline">\(X'\)</span>について成り立つような集合<span class="math inline">\(P\)</span>が存在する。 これを<span class="math inline">\(X\)</span>の<strong>冪集合(power set)</strong>といい、 <span class="math inline">\(P = \mathcal{P}(X)\)</span>や<span class="math inline">\(P = 2^{X}\)</span>などと書く。</p>
+<p>一階述語論理による記述: <span class="math display">\[
+  \exists P \forall X (X' \in P \leftrightarrow X' \subseteq X)
+\]</span></p>
+</div>
+</div>
+<p>冪集合もまた、<a href="#subseteq-and-eq">集合の等号の定義</a>から一意に定まる。</p>
+<div id="union" class="box axiom">
+<div class="box-title">
+<p><strong>公理5</strong> (和集合の公理(axiom of union))</p>
+</div>
+<div class="box-body">
+<p>任意の集合<span class="math inline">\(X\)</span>に対して、 <span class="math display">\[
+  x \in U \Longleftrightarrow x \in S \in X \mbox{となるような$S$が存在する}
+\]</span> がすべての<span class="math inline">\(x\)</span>について成り立つ集合<span class="math inline">\(U\)</span>が存在し、これを<span class="math inline">\(X\)</span>のすべての元の <strong>和集合(union)</strong>という。通常和集合は<span class="math inline">\(\displaystyle U = \bigcup_{S \in X} S\)</span> と記される。とくに<span class="math inline">\(X = \{ Y, Z \}\)</span>のときは、この和集合を<span class="math inline">\(Y \cup Z\)</span>と書く。</p>
+<p>一階述語論理による記述: <span class="math display">\[
+  \exists U \forall X (x \in U \leftrightarrow \exists S (x \in S \in X))
+\]</span></p>
+</div>
+</div>
+<p>この集合もまた一意に定まる。</p>
+<p>次の無限公理を定式化する前に、各集合<span class="math inline">\(X\)</span>に対して、一元集合<span class="math inline">\(\{ X \}\)</span>、 二元集合<span class="math inline">\(\{ X, \{ X \} \}\)</span>等々、一般に<span class="math inline">\(X\)</span>の<strong>後者(successor)</strong>と呼ばれる集合 <span class="math display">\[
+  S(X) = X \cup \{ X \}
+\]</span> が得られることに注意してほしい。このことから、すべての有限順序数が生じる: <span class="math display">\[
+  0 := \emptyset, 1 := S(\emptyset) = \{ 0 \}, 2 := S(1) = \{ 0, \{ 0 \} \} = \{ 0, 1 \}, \ldots
+\]</span> したがって、各順序数はそれ自身より小さな順序数からなる集合であることがわかる。 このことから、最初の無限順序数<span class="math inline">\(\omega\)</span>は、すべての有限順序数からなる集合となる はずである。よって、この<span class="math inline">\(\omega\)</span>を含む集合が存在することを要求できれば、 無限集合が少なくとも1つ存在することが保証される。</p>
+<div id="infinity" class="box axiom">
+<div class="box-title">
+<p><strong>公理6</strong> (無限公理(axiom of infinity))</p>
+</div>
+<div class="box-body">
+<p>空集合を含み、<span class="math inline">\(X \in \omega\)</span>ならば<span class="math inline">\(S(X) \in \omega\)</span>となるような集合 <span class="math inline">\(\omega\)</span>が存在する。</p>
+<p>一階述語論理による記述: <span class="math display">\[
+  \exists \omega (\emptyset \in \omega \land X \in \omega \to S(X) \in \omega)
+\]</span></p>
+</div>
+</div>
+<div id="comprehension-scheme" class="box axiom">
+<div class="box-title">
+<p><strong>公理7</strong> (内包性の公理(axiom of comprehension scheme))</p>
+</div>
+<div class="box-body">
+<p>任意の集合<span class="math inline">\(U\)</span>と、<span class="math inline">\(U\)</span>の要素に関する任意の性質<span class="math inline">\(P\)</span>に対して、 <span class="math display">\[
+  x \in S \Longleftrightarrow x \in U \mbox{かつ$x$は性質$P$を満たす}
+\]</span> となる集合<span class="math inline">\(S\)</span>が存在する。この集合も一意に定まり、通常、 <span class="math display">\[
+  S = \{ x | x \in U \mbox{かつ$x$は$P$を満たす} \}
+\]</span> と書く。</p>
+<p>一階述語論理による記述:</p>
+<p><span class="math inline">\(S\)</span>を自由変数として含まない論理式<span class="math inline">\(P\)</span>ごとに</p>
+<p><span class="math display">\[
+  \exists S \forall x (x \in S \leftrightarrow x \in U \land P(x) )
+\]</span></p>
+</div>
+</div>
+<p>これにより、種々の集合の構成が可能になる。 例えば、これにより集合<span class="math inline">\(X, Y\)</span>の共通部分<span class="math inline">\(X \cap Y\)</span>が定義できる。 この公理は、<strong>分出公理(axiom of separation scheme)</strong>とも呼ばれる。</p>
+<p>この公理を用いて<a href="#russels-paradox">ラッセルの逆理</a>を生じる集合<span class="math inline">\(Y\)</span>を構成することはできない<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</p>
+<p>なぜなら、<a href="#comprehension-scheme">内包性の公理</a>は、与えられた集合<span class="math inline">\(U\)</span>の部分集合の構成を保証しているだけで、すべての集合 からなる普遍集合の部分集合、例えば<span class="math inline">\(Y\)</span>のようなものの構成は保証していないためである。</p>
+<div id="regularity" class="box axiom">
+<div class="box-title">
+<p><strong>公理8</strong> (正則性の公理(axiom of regularity))</p>
+</div>
+<div class="box-body">
+<p>集合<span class="math inline">\(X\)</span>が空集合でなければ、<span class="math inline">\(X\)</span>と同じ要素を共有しない<span class="math inline">\(X\)</span>の要素がある。すなわち、 <span class="math display">\[
+  X \neq \emptyset \mbox{ ならば } \omega \in X \mbox{ かつ } X \cap \omega = \emptyset \mbox{となる$\omega$が存在する}
+\]</span></p>
+<p>一階述語論理による記述:</p>
+<p><span class="math display">\[
+  \exists \omega \forall X(X \neq \emptyset \to \omega \in X \land X \cap \omega = \emptyset )
+\]</span></p>
+</div>
+</div>
+<p>この公理は、<span class="math inline">\(x \in x\)</span>となる集合<span class="math inline">\(X\)</span>(すなわち自分自身を要素とする集合)を集合と認めないものである。 なぜなら、そのような集合<span class="math inline">\(x\)</span>が存在すると仮定すると、一元集合<span class="math inline">\(\{ x \}\)</span>は、(元に<span class="math inline">\(x\)</span>を持つため)空集合でないが、 <span class="math inline">\(x \cap \{ x \}\)</span>は<span class="math inline">\(x \in x\)</span>より、共通要素<span class="math inline">\(x\)</span>を持つこととなり、この<a href="#regularity">正則性の公理</a>と矛盾するためである。 同様に、<span class="math inline">\(X \in Y \in X\)</span>とは決してならないことが示される。もしそうであれば<span class="math inline">\(\{ X, Y \}\)</span>は空集合でないにも 関わらず、その元(<span class="math inline">\(X\)</span>または<span class="math inline">\(Y\)</span>)は<span class="math inline">\(\{ X, Y \}\)</span>と共通元を持ってしまい、矛盾が生じるためである。</p>
+<p><a href="#regularity">正則性の公理</a>は、集合の列<span class="math inline">\(S_{n}\)</span>を定義したとき、無限“下降列” <span class="math display">\[
+  \cdots \in S_{n} \in S_{n-1} \in S_{n-2} \in \cdots \in S_{1} \in S_{0}
+\]</span> が存在しないことを保証する。もし、存在すると仮定すると、<span class="math inline">\(X = \{ S_{0}, S_{1}, \ldots \}\)</span>が 反例となるためである。</p>
+<p><a href="#regularity">正則性の公理</a>は<strong>基礎の公理(axiom of foundation)</strong>とも呼ばれる。すなわち、 与えられた集合<span class="math inline">\(S_{0}\)</span>に対して、その要素からなる無限に後退していく列は存在しない。</p>
+<h2 id="ツェルメロ-フレンケル公理系zf公理系">ツェルメロ-フレンケル公理系(ZF公理系)</h2>
+<p>公理的集合論で標準的に採用される公理は、この<a href="#ツェルメロの公理系z公理系">ツェルメロの公理</a>に以下の公理を付け加えた <strong>ツェルメロ-フレンケル公理系(Zermelo-Frenkel’s axioms)</strong>、いわゆる<strong>ZF公理系</strong>である。</p>
+<div id="replacement-scheme" class="box axiom">
+<div class="box-title">
+<p><strong>公理9</strong> (置換の公理(axiom of replacement scheme))</p>
+</div>
+<div class="box-body">
+<p><span class="math inline">\(R(X, Y)\)</span>を2つの集合<span class="math inline">\(X, Y\)</span>と所属関係によって記述された論理式とし、<span class="math inline">\(U\)</span>は集合で、 その任意の要素<span class="math inline">\(X \in U\)</span>に対して<span class="math inline">\(R(X, Y)\)</span>となる<span class="math inline">\(Y\)</span>がただ1つだけ存在するものとしたとき、 ちょうどこれらの<span class="math inline">\(Y\)</span>の全体で構成される集合が存在する。</p>
+<p>一階述語論理による記述:</p>
+<p><span class="math inline">\(B\)</span>を自由変数として含まない論理式<span class="math inline">\(R\)</span>ごとに、</p>
+<p><span class="math display">\[
+  \forall X \in U \exists! Y (R(X, Y)) \to \exists B \forall X \in U \exists Y \in B (R(X,Y))
+\]</span></p>
+</div>
+</div>
+<p>この<a href="#replacement-scheme">置換公理</a>から、<a href="#comprehension-scheme">内包性公理</a>を導くこともできる。</p>
+<h2 id="zfc公理系">ZFC公理系</h2>
+<p><a href="#ツェルメロ-フレンケル公理系zf公理系">ZF公理系</a>に以下の選択公理を追加した<strong>ZFC公理系</strong>もよく用いられる:</p>
+<div id="choice" class="box axiom">
+<div class="box-title">
+<p><strong>公理10</strong> (選択公理(axiom of choice))</p>
+</div>
+<div class="box-body">
+<p>空集合でない集合を要素に持つ集合<span class="math inline">\(X\)</span>において、<span class="math inline">\(X\)</span>を定義域とする関数<span class="math inline">\(f\)</span>で、 すべての要素<span class="math inline">\(x \in X\)</span>に対して、<span class="math inline">\(f(x) \in x\)</span>となるものが存在する。 言い換えれば、<span class="math inline">\(f\)</span>は<span class="math inline">\(X\)</span>の各<span class="math inline">\(x \neq \emptyset\)</span>に対して、特定の要素<span class="math inline">\(f(x) \in x\)</span>を選ぶことができる。</p>
+<p>一階述語論理による記述:</p>
+<p><span class="math display">\[
+  \emptyset \notin X \land \forall x \in X \exists f: X \to x (f(x) \in x)
+\]</span></p>
+</div>
+</div>
+<p><span class="math inline">\(f\)</span>は<span class="math inline">\(X\)</span>に対する1つの選択関数になっている。すなわち、<span class="math inline">\(f\)</span>の定義を整理すると、 <span class="math display">\[\begin{align*}
+  \begin{array}{rcl}
+    f :  X  &amp;     \xrightarrow{\qquad}    &amp;   x \\
+       \vin &amp;                             &amp; \vin \\
+         x  &amp; \xmapsto{\hphantom{\qquad}} &amp; \ast := f(x)
+  \end{array}
+\end{align*}\]</span> であり、<span class="math inline">\(\ast\)</span>が<span class="math inline">\(X\)</span>の要素である集合<span class="math inline">\(x\)</span>から選択されている。 これが必要となるのは、<span class="math inline">\(X\)</span>が無限集合の場合である。数学では“無限”に関する多くの議論にこの公理が使われるが、 その際はこれと同値な<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>以下の形で用いられることが多い:</p>
+<div id="zorns-lemma" class="box proposition">
+<div class="box-title">
+<p><strong>命題</strong> (ツォルンの補題(Zorn’s lemma))</p>
+</div>
+<div class="box-body">
+<p>半順序集合<span class="math inline">\(P\)</span>は、そのすべての全順序部分集合が<span class="math inline">\(P\)</span>に上階を持つとする。このとき、<span class="math inline">\(P\)</span>は少なくともひとつの極大元を持つ。</p>
+</div>
+</div>
+<p>ZFC公理系により、<a href="#cantors-paradox">カントールの逆理</a>及び<a href="#russels-paradox">ラッセルの逆理</a>を避けて議論を行うことができるが、 圏論では集合全体を対象とした議論を行いたい。しかし、集合全体からなる集合は考えることはできない。この問題を解消する方法は2つある:</p>
+<ul>
+<li>集合全体の集まりを集合よりも上位の概念である<strong>類(class)</strong>として考える。</li>
+<li>考察の対象とする集合の範囲を、ある大きな集合に属するものに限定する。</li>
+</ul>
+<p>前者は集合のみならず、類を含めて扱う集合論の議論が必要になるため、圏論記事では後者を採用する。 まずは宇宙を定義する。</p>
+<div id="universe" class="box definition">
+<div class="box-title">
+<p><strong>定義</strong> (宇宙(universe))</p>
+</div>
+<div class="box-body">
+<p>宇宙<span class="math inline">\(\mathfrak{U}\)</span>とは、以下の性質を満たす集合である:</p>
+<ol type="1">
+<li><span class="math inline">\(\emptyset \in \mathfrak{U}\)</span>.</li>
+<li><span class="math inline">\(u \in \mathfrak{U} \Longrightarrow u \subseteq \mathfrak{U}\)</span> (同値だが、<span class="math inline">\(x \in \mathfrak{U}\)</span>かつ<span class="math inline">\(y \in x \Longrightarrow y \in \mathfrak{U}\)</span>または<span class="math inline">\(\mathfrak{U} \subsetneq \mathcal{P}(\mathfrak{U})\)</span>)</li>
+<li><span class="math inline">\(u \in \mathfrak{U} \Longrightarrow \{ u \} \in \mathfrak{U}\)</span>.</li>
+<li><span class="math inline">\(u \in \mathfrak{U} \Longrightarrow \mathfrak{P}(u) \in \mathfrak{U}\)</span>.</li>
+<li><span class="math inline">\(I \in \mathfrak{U}\)</span>で、すべての<span class="math inline">\(i \in I\)</span>に対して<span class="math inline">\(u_{i} \in \mathfrak{U}\)</span>が成り立つ<span class="math inline">\(\Longrightarrow \bigcup_{i \in I}u_{i} \in \mathfrak{U}\)</span>.</li>
+<li><span class="math inline">\(\mathbb{N} \in \mathfrak{U}\)</span>.</li>
+</ol>
+</div>
+</div>
+<p>この定義から、宇宙<span class="math inline">\(\mathfrak{U}\)</span>に対して、以下のことが成り立つ:</p>
+<div id="property-of-universe" class="box proposition">
+<div class="box-title">
+<p><strong>命題</strong></p>
+</div>
+<div class="box-body">
+<ol start="7" type="1">
+<li><span class="math inline">\(\displaystyle u \in \mathfrak{U} \Longrightarrow \bigcup_{x \in u} x \in \mathfrak{U}.\)</span></li>
+<li><span class="math inline">\(u, v \in \mathfrak{U} \Longleftarrow u \times v \in \mathfrak{U}\)</span>.</li>
+<li><span class="math inline">\(u \subseteq v \in \mathfrak{U} \Longrightarrow u \in \mathfrak{U}\)</span>.</li>
+<li><span class="math inline">\(I \in \mathfrak{U}\)</span>かつ、すべての<span class="math inline">\(i \in I\)</span>に対して<span class="math inline">\(\displaystyle u_{i} \in \mathfrak{U} \Longrightarrow \prod_{i \in I} u_{i} \in \mathfrak{U}\)</span>.</li>
+</ol>
+</div>
+</div>
+<p>このような宇宙の存在は通常の集合論の公理では保証されないため、以下の公理を追加する必要がある:</p>
+<div id="existence-of-universe" class="box axiom">
+<div class="box-title">
+<p><strong>公理11</strong></p>
+</div>
+<div class="box-body">
+<p>任意の集合<span class="math inline">\(X\)</span>に対し、<span class="math inline">\(X \in \mathfrak{U}\)</span>となる宇宙<span class="math inline">\(\mathfrak{U}\)</span>が存在する。</p>
+</div>
+</div>
+<p>圏論記事では、上で導入したZFC公理系に加え、上記の公理を追加する。</p>
+<p>また、宇宙の導入に合わせ、宇宙に属する集合に関する定義も行っておく。</p>
+<div id="u-set-and-u-small" class="box definition">
+<div class="box-title">
+<p><strong>定義</strong> (<span class="math inline">\(\mathfrak{U}\)</span>-集合、 <span class="math inline">\(\mathfrak{U}\)</span>-small)</p>
+</div>
+<div class="box-body">
+<p><span class="math inline">\(\mathfrak{U}\)</span>を宇宙とする。 1. 集合が<span class="math inline">\(\mathfrak{U}\)</span>に属すとき、その集合を<strong><span class="math inline">\(\mathfrak{U}\)</span>-集合(<span class="math inline">\(\mathfrak{U}\)</span>-set)</strong>という。 2. 集合が<span class="math inline">\(\mathfrak{U}\)</span>に属す何らかの集合と同型であるとき、その集合は<strong><span class="math inline">\(\mathfrak{U}\)</span>-small</strong>であるという。</p>
+</div>
+</div>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>あくまで<a href="#comprehension-scheme">内包性の公理</a>を用いて構成できるのは集合が与えられた場合のみというだけで、 <a href="#russels-paradox">ラッセルの逆理</a>を生じる集合<span class="math inline">\(Y\)</span>の存在自体を否定しているわけではない。あくまでこれらの公理は 考える集合を制限するためにあり、これにより<strong>逆理が解消されるわけではない</strong>ことに注意する。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>証明はかなりの量になるため省略する(気が向けば追記する)<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+</article>
+  <aside>
+    <h3 class="sub-title">目次</h3>
+    <div id="toc">
+      <ul>
+      <li><a href="#圏論のための集合">圏論のための集合</a></li>
+      <li><a href="#圏論記事で仮定する公理">圏論記事で仮定する公理</a>
+      <ul>
+      <li><a href="#ツェルメロの公理系z公理系">ツェルメロの公理系(Z公理系)</a></li>
+      <li><a href="#ツェルメロ-フレンケル公理系zf公理系">ツェルメロ-フレンケル公理系(ZF公理系)</a></li>
+      <li><a href="#zfc公理系">ZFC公理系</a></li>
+      </ul></li>
+      </ul>
+    </div>
+  </aside>
+</div>
+  </div>
+      </div>
+
+      <footer>
+        <div class="wrapper">
+          <p><small>&copy; 2020 PotassiumIodide</small></p>
+        </div>
+        <div>
+          <p class="hakyll-footer"><small>
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            </small></p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
