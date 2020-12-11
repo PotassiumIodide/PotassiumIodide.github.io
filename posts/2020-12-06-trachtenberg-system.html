@@ -81,87 +81,87 @@
   <article>
   <div class="article-body">
     
-<p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルク法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
-<!--more-->
-<h1 id="トラハテンベルク法とは">トラハテンベルク法とは</h1>
-<p>各計算を簡単に行ういくつかのアルゴリズムを組み合わせることで、巨大な数も高速に計算することができるシステムです。 このシステムは、ナチスの強制収容所にいたロシア系ユダヤ人のエンジニア、ヤコウ・トラハテンベルク(Jakow Trachtenberg)によって開発されました。</p>
-<h1 id="一般的な乗算アルゴリズム">一般的な乗算アルゴリズム</h1>
-<p>一般的な乗算を、空間複雑性を小さく抑えて<span class="math inline">\(a \times b\)</span>を行います。 つまり、一時的な結果をできるだけメモリに残さず計算を行います。 これは多項式の最後の一桁を乗算することで、最後の一桁が決定されることに着目します。これを一時的な結果として保存し、次の計算から最後の一桁を求めるには、この一桁に影響を与えるものすべてを必要とします。 仮の結果<span class="math inline">\(a\)</span>の最後の一桁に<span class="math inline">\(b\)</span>の最後の一桁を掛け合わせたものと、<span class="math inline">\(a\)</span>の最後の一桁に<span class="math inline">\(b\)</span>の次の一桁を掛けたものが計算され、最後の二桁が正しい仮の結果として現れます。</p>
-<p>一般的には、最終結果の各位置<span class="math inline">\(n\)</span>に対して、 <span class="math display">\[
-  (\mbox{$a$の$i$桁目}) \times (\mbox{$b$の$n-i$桁目})
-\]</span> をすべての<span class="math inline">\(i\)</span>について足し合わせます。 このアルゴリズムを習得すると、4桁の数字の乗算を暗算できるようになります。 最終的な結果だけを書き留めておきます。右端の数字から始まり、左端の数字で終わるように書き出します。</p>
-<p>トラハテンベルクはこのアルゴリズムを、2桁の数字を1桁で乗算する一種のペアワイズ乗算として定義しており、基本的には結果の中間の1桁だけを保持しています。このペアワイズ乗算で上記のアルゴリズムを実行することで、一時的な結果を保持する必要はさらに少なくなります。</p>
-<div class="box example">
-<div class="box-title">
-<p><strong>Example</strong> [<span class="math inline">\(123456 \times 789\)</span>]</p>
-</div>
-<div class="box-body">
-<ol type="1">
-<li>答えの右端の桁を求めるために、最初の桁から乗算を始めます:
-<ul>
-<li><span class="math inline">\(9 \times 6\)</span>の一の位は<span class="math inline">\(4\)</span>。</li>
-<li>結果の一の位を<span class="math inline">\(4\)</span>とし、<span class="math inline">\(5\)</span>を十の位に繰り上げる。</li>
-</ul></li>
-<li>答えの十の位を求めるために、十の位の乗算を始めます:
-<ul>
-<li>(<span class="math inline">\(9 \times 5\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(9 \times 6\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 6\)</span>の一の位): <span class="math display">\[
- 5 + 5 + 8 = 18
-\]</span></li>
-<li>結果の十の位は<span class="math inline">\(8\)</span>とし、<span class="math inline">\(1\)</span>を百の位に繰り上げます。</li>
-</ul></li>
-<li>答えの百の位を求めるために、百の位の乗算を始めます:
-<ul>
-<li>(<span class="math inline">\(9 \times 4\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(9 \times 5\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 5\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 6\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(7 \times 6\)</span>の一の位): <span class="math display">\[
-1 + 6 + 4 + 4 + 0 + 2 = 17
-\]</span></li>
-<li>結果の百の位を<span class="math inline">\(7\)</span>とし、<span class="math inline">\(1\)</span>を次の位に繰り上げる。</li>
-</ul></li>
-<li>答えの千の位を求めるために、千の蔵の乗算を始めます：
-<ul>
-<li>(<span class="math inline">\(9 \times 3\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(9 \times 4\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 4\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 5\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(7 \times 5\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(7 \times 6\)</span>の十の位)<span class="math inline">\(+\)</span>百の位からの繰り上げ: <span class="math display">\[
-1 + 7 + 3 + 2 + 4 + 5 + 4 = 26
-\]</span></li>
-<li>結果の千の位を<span class="math inline">\(6\)</span>とし、<span class="math inline">\(2\)</span>を万の位に繰り上げる。</li>
-</ul></li>
-<li>残りの桁を求めるために、同じ方法を繰り返す。</li>
-</ol>
-</div>
-</div>
-<h1 id="その他の乗算アルゴリズム">その他の乗算アルゴリズム</h1>
-<p>これらの掛け算アルゴリズムを実行する際には、以下の「ステップ」を適用しなければなりません。 答えは、最下位の桁から始めて左に移動しながら、一度に一桁ずつ見つけなければなりません。最後の計算は、乗算子の先頭のゼロから行います。 各桁には隣人、つまり右端の桁があります。一番右の桁の隣人は末尾のゼロです。 半分」演算はトラヒテンベルグシステムでは特別な意味を持っています。これは「桁の半分を切り捨てて半分にする」という意味ですが、トラヒテンベルグ方式に従う人はスピードを重視して、この半分にする処理を瞬時に行うように勧められています。つまり、「7の半分は3.5だから3」と考えるのではなく、「7, 3」と考えることを提案しているのです。これで計算がかなり速くなります。このようにして、10や9から数字を引くための表を暗記します。 そして、ルールが隣の数字の半分を足すことを要求するときはいつでも、現在の数字が奇数の場合は常に5を足します。これで、次の桁の計算で0.5を落とすことを補うことができます。</p>
-<h2 id="倍">2倍</h2>
-<p><strong>ルール: </strong> 各桁を2倍する(繰り上がりも考慮する)</p>
-<p><strong>例: </strong> <span class="math inline">\(8624 \times 2\)</span></p>
-<p>左から右へ計算する</p>
-<p><span class="math display">\[\begin{align*}
-   &amp;8 + 8 = 16, \\
-   &amp;6 + 6 = 12 \quad \mbox{(1繰り上げ)}, \\
-   &amp;2 + 2 = 4, \\
-   &amp;4 + 4 = 8, \\
-   &amp;8624 \times 2 = 17248 \\
-\end{align*}\]</span></p>
-<p><strong>例: </strong> <span class="math inline">\(76892 \times 2\)</span></p>
-<p>左から右へ計算する</p>
-<p><span class="math display">\[\begin{align*}
-   &amp;7 + 7 = 14, \\
-   &amp;6 + 6 = 12, \\
-   &amp;8 + 8 = 16, \\
-   &amp;9 + 9 = 18, \\
-   &amp;2 + 2 = 4, \\
-   &amp;76892 \times 2 = 153484
-\end{align*}\]</span></p>
-<h2 id="倍-1">3倍</h2>
-<p><strong>ルール: </strong> 1. 最大桁を10から引く 2. 残った桁を9から引く 3. 結果を2倍する 4. 隣の桁の半分を右に足し、桁が奇数の場合<span class="math inline">\(5\)</span>を<strong>足す</strong> 5. ゼロを導くために、隣の桁の半分から2を引く</p>
-<p><strong>例: </strong> <span class="math inline">\(492 \times 3 = 1476\)</span></p>
-<p>右から左へ計算する</p>
-<p><span class="math display">\[\begin{align*}
-(10 - 2) \times 2 + \mbox{ 0の半分(0)} = 16. \mbox{ $6$と書き、$1$を繰り上げる}
-\end{align*}\]</span></p>
-<h1 id="その他の方法">その他の方法</h1>
-</article>
+    <p>先日『gifted/ギフテッド』という映画を観ていたら、掛け算を高速にできるアルゴリズムとして、 <strong>トラハテンベルク法(Trachtenberg system)</strong>という用語が出てきました。 暗算が苦手なので、習得してみたいですね。</p>
+    <!--more-->
+    <h1 id="トラハテンベルク法とは">トラハテンベルク法とは</h1>
+    <p>各計算を簡単に行ういくつかのアルゴリズムを組み合わせることで、巨大な数も高速に計算することができるシステムです。 このシステムは、ナチスの強制収容所にいたロシア系ユダヤ人のエンジニア、ヤコウ・トラハテンベルク(Jakow Trachtenberg)によって開発されました。</p>
+    <h1 id="一般的な乗算アルゴリズム">一般的な乗算アルゴリズム</h1>
+    <p>一般的な乗算を、空間複雑性を小さく抑えて<span class="math inline">\(a \times b\)</span>を行います。 つまり、一時的な結果をできるだけメモリに残さず計算を行います。 これは多項式の最後の一桁を乗算することで、最後の一桁が決定されることに着目します。これを一時的な結果として保存し、次の計算から最後の一桁を求めるには、この一桁に影響を与えるものすべてを必要とします。 仮の結果<span class="math inline">\(a\)</span>の最後の一桁に<span class="math inline">\(b\)</span>の最後の一桁を掛け合わせたものと、<span class="math inline">\(a\)</span>の最後の一桁に<span class="math inline">\(b\)</span>の次の一桁を掛けたものが計算され、最後の二桁が正しい仮の結果として現れます。</p>
+    <p>一般的には、最終結果の各位置<span class="math inline">\(n\)</span>に対して、 <span class="math display">\[
+      (\mbox{$a$の$i$桁目}) \times (\mbox{$b$の$n-i$桁目})
+    \]</span> をすべての<span class="math inline">\(i\)</span>について足し合わせます。 このアルゴリズムを習得すると、4桁の数字の乗算を暗算できるようになります。 最終的な結果だけを書き留めておきます。右端の数字から始まり、左端の数字で終わるように書き出します。</p>
+    <p>トラハテンベルクはこのアルゴリズムを、2桁の数字を1桁で乗算する一種のペアワイズ乗算として定義しており、基本的には結果の中間の1桁だけを保持しています。このペアワイズ乗算で上記のアルゴリズムを実行することで、一時的な結果を保持する必要はさらに少なくなります。</p>
+    <div class="box example">
+    <div class="box-title">
+    <p><strong>Example</strong> [<span class="math inline">\(123456 \times 789\)</span>]</p>
+    </div>
+    <div class="box-body">
+    <ol type="1">
+    <li>答えの右端の桁を求めるために、最初の桁から乗算を始めます:
+    <ul>
+    <li><span class="math inline">\(9 \times 6\)</span>の一の位は<span class="math inline">\(4\)</span>。</li>
+    <li>結果の一の位を<span class="math inline">\(4\)</span>とし、<span class="math inline">\(5\)</span>を十の位に繰り上げる。</li>
+    </ul></li>
+    <li>答えの十の位を求めるために、十の位の乗算を始めます:
+    <ul>
+    <li>(<span class="math inline">\(9 \times 5\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(9 \times 6\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 6\)</span>の一の位): <span class="math display">\[
+     5 + 5 + 8 = 18
+    \]</span></li>
+    <li>結果の十の位は<span class="math inline">\(8\)</span>とし、<span class="math inline">\(1\)</span>を百の位に繰り上げます。</li>
+    </ul></li>
+    <li>答えの百の位を求めるために、百の位の乗算を始めます:
+    <ul>
+    <li>(<span class="math inline">\(9 \times 4\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(9 \times 5\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 5\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 6\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(7 \times 6\)</span>の一の位): <span class="math display">\[
+    1 + 6 + 4 + 4 + 0 + 2 = 17
+    \]</span></li>
+    <li>結果の百の位を<span class="math inline">\(7\)</span>とし、<span class="math inline">\(1\)</span>を次の位に繰り上げる。</li>
+    </ul></li>
+    <li>答えの千の位を求めるために、千の蔵の乗算を始めます：
+    <ul>
+    <li>(<span class="math inline">\(9 \times 3\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(9 \times 4\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 4\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(8 \times 5\)</span>の十の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(7 \times 5\)</span>の一の位)<span class="math inline">\(+\)</span>(<span class="math inline">\(7 \times 6\)</span>の十の位)<span class="math inline">\(+\)</span>百の位からの繰り上げ: <span class="math display">\[
+    1 + 7 + 3 + 2 + 4 + 5 + 4 = 26
+    \]</span></li>
+    <li>結果の千の位を<span class="math inline">\(6\)</span>とし、<span class="math inline">\(2\)</span>を万の位に繰り上げる。</li>
+    </ul></li>
+    <li>残りの桁を求めるために、同じ方法を繰り返す。</li>
+    </ol>
+    </div>
+    </div>
+    <h1 id="その他の乗算アルゴリズム">その他の乗算アルゴリズム</h1>
+    <p>これらの掛け算アルゴリズムを実行する際には、以下の「ステップ」を適用しなければなりません。 答えは、最下位の桁から始めて左に移動しながら、一度に一桁ずつ見つけなければなりません。最後の計算は、乗算子の先頭のゼロから行います。 各桁には隣人、つまり右端の桁があります。一番右の桁の隣人は末尾のゼロです。 半分」演算はトラヒテンベルグシステムでは特別な意味を持っています。これは「桁の半分を切り捨てて半分にする」という意味ですが、トラヒテンベルグ方式に従う人はスピードを重視して、この半分にする処理を瞬時に行うように勧められています。つまり、「7の半分は3.5だから3」と考えるのではなく、「7, 3」と考えることを提案しているのです。これで計算がかなり速くなります。このようにして、10や9から数字を引くための表を暗記します。 そして、ルールが隣の数字の半分を足すことを要求するときはいつでも、現在の数字が奇数の場合は常に5を足します。これで、次の桁の計算で0.5を落とすことを補うことができます。</p>
+    <h2 id="倍">2倍</h2>
+    <p><strong>ルール: </strong> 各桁を2倍する(繰り上がりも考慮する)</p>
+    <p><strong>例: </strong> <span class="math inline">\(8624 \times 2\)</span></p>
+    <p>左から右へ計算する</p>
+    <p><span class="math display">\[\begin{align*}
+       &amp;8 + 8 = 16, \\
+       &amp;6 + 6 = 12 \quad \mbox{(1繰り上げ)}, \\
+       &amp;2 + 2 = 4, \\
+       &amp;4 + 4 = 8, \\
+       &amp;8624 \times 2 = 17248 \\
+    \end{align*}\]</span></p>
+    <p><strong>例: </strong> <span class="math inline">\(76892 \times 2\)</span></p>
+    <p>左から右へ計算する</p>
+    <p><span class="math display">\[\begin{align*}
+       &amp;7 + 7 = 14, \\
+       &amp;6 + 6 = 12, \\
+       &amp;8 + 8 = 16, \\
+       &amp;9 + 9 = 18, \\
+       &amp;2 + 2 = 4, \\
+       &amp;76892 \times 2 = 153484
+    \end{align*}\]</span></p>
+    <h2 id="倍-1">3倍</h2>
+    <p><strong>ルール: </strong> 1. 最大桁を10から引く 2. 残った桁を9から引く 3. 結果を2倍する 4. 隣の桁の半分を右に足し、桁が奇数の場合<span class="math inline">\(5\)</span>を<strong>足す</strong> 5. ゼロを導くために、隣の桁の半分から2を引く</p>
+    <p><strong>例: </strong> <span class="math inline">\(492 \times 3 = 1476\)</span></p>
+    <p>右から左へ計算する</p>
+    <p><span class="math display">\[\begin{align*}
+    (10 - 2) \times 2 + \mbox{ 0の半分(0)} = 16. \mbox{ $6$と書き、$1$を繰り上げる}
+    \end{align*}\]</span></p>
+    <h1 id="その他の方法">その他の方法</h1>
+  </article>
   <aside>
     <h3 class="sub-title">目次</h3>
-    <div id="toc">
+    <div id="toc" class="side-card">
       <ul>
       <li><a href="#トラハテンベルク法とは">トラハテンベルク法とは</a></li>
       <li><a href="#一般的な乗算アルゴリズム">一般的な乗算アルゴリズム</a></li>
@@ -173,6 +173,17 @@
       <li><a href="#その他の方法">その他の方法</a></li>
       </ul>
     </div>
+    <h3 class="sub-title">免責事項</h3>
+    <div id="disclaimer" class="side-card">
+      当サイトは個人・及び関係者の利用のみを仮定しており、
+      必ずしも情報の正確性を保証しておりません。
+      当サイトに掲載された内容により生じる損害等に対し、一切の
+      責任を負いかねますのでご了承ください。
+      より正確な情報を掲載するために、情報の誤りや不備・誤字脱字等を発見した場合、
+      <a href="mailto:potassium.iodide28@gmail.com">Email</a>
+      または
+      <a href="https://twitter.com/aspirerator">Twitter</a>
+      へ報告頂けると幸いです。可能な限り迅速に加筆修正致します。
   </aside>
 </div>
   </div>
