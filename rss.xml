@@ -1,0 +1,1586 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>ImamLab-Web</title>
+        <link>https://PotassiumIodide.github.io</link>
+        <description><![CDATA[My Blog with Hakyll]]></description>
+        <atom:link href="https://PotassiumIodide.github.io/rss.xml" rel="self"
+                   type="application/rss+xml" />
+        <lastBuildDate>2022-01-31T20:37:15Z</lastBuildDate>
+        <item>
+    <title>Nix学習備忘録Part 2-1-2: GitHubのzshプラグインを利用する</title>
+    <link>https://PotassiumIodide.github.io/imamlab.log/2022-01-31-using-zsh-plugin-from-github.html</link>
+    <description><![CDATA[<nav role="navigation" class="p-toc">
+  <h2 class="p-toc__header">
+    目次
+  </h2>
+  <div class="p-toc__contents">
+    <ul>
+    <li><a href="#はじめに"><span class="toc-section-number">1</span> はじめに</a></li>
+    <li><a href="#外部パッケージの導入方法"><span class="toc-section-number">2</span> 外部パッケージの導入方法</a>
+    <ul>
+    <li><a href="#autojump-曖昧な名前でディレクトリ移動を可能にする"><span class="toc-section-number">2.1</span> autojump: 曖昧な名前でディレクトリ移動を可能にする</a></li>
+    </ul></li>
+    <li><a href="#lsコマンドをかっこよくする"><span class="toc-section-number">3</span> lsコマンドをかっこよくする</a></li>
+    <li><a href="#まとめ"><span class="toc-section-number">4</span> まとめ</a></li>
+    </ul>
+  </div>
+</nav>
+<h1 data-number="1" id="はじめに"><span class="header-section-number">1</span> はじめに</h1>
+<p>本記事ではHome Managerを用いて導入したZ ShellでGitHub上にあるプラグインを利用する方法について書きます。 Home Mangerを用いたzshの導入がお済みでない方は、<a href="https://potassiumiodide.github.io/imamlab.log/2022-01-30-starting-zsh-with-home-manager.html">前回の記事</a>を先にご覧ください。</p>
+<p>また、GitHub上のオープンソースを利用させて頂き、 <code>ls</code>コマンドの見た目も整えてみたいと思います。</p>
+<!--more-->
+<h1 data-number="2" id="外部パッケージの導入方法"><span class="header-section-number">2</span> 外部パッケージの導入方法</h1>
+<p>基本的には<code>pkgs.fetchFromGitHub</code>関数を用いて、 GitHubからソースを引っ張ってきます。 <code>let ～ in ...</code>式を用いて、パッケージをインストールします。 <code>let</code>式の中にはパッケージの情報を持つ定数を記述します。 そのフォーマットが以下の通りです:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">variableName</span> = {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">name</span> = <span class="st">&quot;プラグイン名&quot;</span><span class="kw">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="ex">owner</span> = <span class="st">&quot;作成者のGitHubユーザ名&quot;</span><span class="kw">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">repo</span> = <span class="st">&quot;プラグインのリポジトリ名&quot;</span><span class="kw">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rev</span> = <span class="st">&quot;コミットID&quot;</span><span class="kw">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">sha256</span> = <span class="st">&quot;Nixが生成するハッシュ値&quot;</span><span class="kw">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="er">}</span><span class="kw">;</span></span></code></pre></div>
+<p><code>sha256</code>以外はすぐにイメージが付くと思います。 一番戸惑うのが<code>sha256</code>ですが、これはNixが自動で生成してくれるハッシュを記述します。 Nixの記事では多くの場合、<code>"00000000000000000000000000000000000000000000"</code>などの適当な値で束縛している例をよく見ますが、 一応<code>lib.fakeSha256</code>という関数が用意されており、この関数を使えば桁数を覚えておく必要も無いので、 私は最初にこの<code>lib.fakeSha256</code>という関数を利用しています。</p>
+<p>zshプラグインの場合、<code>home.nix</code>の<code>zsh</code>内に以下のように記述します:</p>
+<div class="sourceCode" id="cb2" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">plugins</span> =</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">let</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>          <span class="ex">plugin1</span> = {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;plugin1&quot;</span><span class="kw">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;someone&quot;</span><span class="kw">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;repository1&quot;</span><span class="kw">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&quot;</span><span class="kw">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = <span class="st">&quot;mrPMgwVkqOlKjvy1106MUKFjfkslajfjfkdslasjdkfj&quot;</span><span class="kw">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>          <span class="ex">plugin2</span> = {</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;plugin2&quot;</span><span class="kw">;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;somebody&quot;</span><span class="kw">;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;repository2&quot;</span><span class="kw">;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&quot;</span><span class="kw">;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = <span class="st">&quot;KLUYpUu4DHRumQZ3w59m9aTW6TBKMCXl2UcKihfjdhsj&quot;</span><span class="kw">;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>          plugin1</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>          plugin2</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        <span class="bu">]</span><span class="kw">;</span></span></code></pre></div>
+<p>ざっくり説明すると、<code>plugins = [];</code>というリスト形式で宣言するものを、 <code>let ～ in ...</code>式を用いて、 プラグインを定義してから、リストに入れるということをしています。</p>
+<p>では、早速<code>autojump</code>というzshのプラグインを入れてみましょう。</p>
+<h2 data-number="2.1" id="autojump-曖昧な名前でディレクトリ移動を可能にする"><span class="header-section-number">2.1</span> autojump: 曖昧な名前でディレクトリ移動を可能にする</h2>
+<p><code>autojump</code>は一度訪問したことのあるディレクトリであれば、 曖昧な名前で移動できるようになるという便利なプラグインです。 GitHubリポジトリは<a href="https://github.com/wting/autojump">wting/autojump</a>です。</p>
+<p>2022/01/31現在の最新バージョンを上のフォーマットを参考にして設定してみます。 記述するのは<code>home.nix</code>の<code>zsh</code>の中です。</p>
+<div class="sourceCode" id="cb3" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">plugins</span> =</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">let</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>          <span class="ex">autojump</span> = {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;wting&quot;</span><span class="kw">;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;06e082c91805cb022900819b2e0881eeae780d58&quot;</span><span class="kw">;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = lib.fakeSha256<span class="kw">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>          autojump</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">]</span><span class="kw">;</span></span></code></pre></div>
+<p>これで<code>home-manager switch</code>を実行すると、<code>sha256</code>の値が適当であるため、エラーが出ます:</p>
+<pre><code>$ home-manager switch
+these 3 derivations will be built:
+  /nix/store/dvhngvpnk39ib19i9mlh8m89j621nykx-source.drv
+  /nix/store/2a26hw00za9x5bpwfmxglq06v6dksdw4-home-manager-files.drv
+  /nix/store/2l3b8vl5bfkcjspd56cimzw7wxnwyfj6-home-manager-generation.drv
+building &#39;/nix/store/dvhngvpnk39ib19i9mlh8m89j621nykx-source.drv&#39;...
+
+trying https://github.com/wting/autojump/archive/06e082c91805cb022900819b2e0881eeae780d58.tar.gz
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   156    0   156    0     0    491      0 --:--:-- --:--:-- --:--:--   490
+100 55488    0 55488    0     0  79451      0 --:--:-- --:--:-- --:--:-- 79451
+unpacking source archive /tmp/nix-build-source.drv-0/06e082c91805cb022900819b2e0881eeae780d58.tar.gz
+error: hash mismatch in fixed-output derivation &#39;/nix/store/dvhngvpnk39ib19i9mlh8m89j621nykx-source.drv&#39;:
+         specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+            got:    sha256-mrPMgwVkqOlKjvy1106MUKF7OlEtKdt8E9mqCg7U9+U=
+error: 1 dependencies of derivation &#39;/nix/store/2a26hw00za9x5bpwfmxglq06v6dksdw4-home-manager-files.drv&#39; failed to build
+error: 1 dependencies of derivation &#39;/nix/store/2l3b8vl5bfkcjspd56cimzw7wxnwyfj6-home-manager-generation.drv&#39; failed to build</code></pre>
+<p>エラーメッセージの以下の部分を見ます:</p>
+<pre><code>         specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+            got:    sha256-mrPMgwVkqOlKjvy1106MUKF7OlEtKdt8E9mqCg7U9+U=</code></pre>
+<p><code>mrPMgwVkqOlKjvy1106MUKF7OlEtKdt8E9mqCg7U9+U=</code>という<code>sha256</code>の値を期待したのに、 <code>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</code>という値を受け取ったというエラーです。 つまり、期待されているハッシュ値を<code>got</code>のところで教えてくれています。 これを先ほどの<code>lib.fakeSha256</code>のところに設定し直します:</p>
+<div class="sourceCode" id="cb6" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">plugins</span> =</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">let</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>          <span class="ex">autojump</span> = {</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;wting&quot;</span><span class="kw">;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;06e082c91805cb022900819b2e0881eeae780d58&quot;</span><span class="kw">;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = <span class="st">&quot;mrPMgwVkqOlKjvy1106MUKF7OlEtKdt8E9mqCg7U9+U=&quot;</span><span class="kw">;</span> <span class="co"># &lt;-ここを変更した</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>          autojump</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">]</span><span class="kw">;</span></span></code></pre></div>
+<p>これで<code>home-manager switch</code>を実行すると、Home Managerを切り替えることに成功します。</p>
+<p>実際、<code>zsh</code>のプラグインは<code>~/.config/zsh/plugins</code>に置かれ、 <code>autojump</code>がちゃんと存在しています:</p>
+<pre><code>$ ls ~/.config/zsh/plugins
+autojump</code></pre>
+<p>しかし、この段階では<code>autojump</code>は使えません。 <code>autojump</code>は<code>j</code>というコマンドで実行されるのですが、見つかりません:</p>
+<pre><code>$ which j
+j not found</code></pre>
+<p>これは、プラグインをGitHubから持ってきただけで、 プラグインとして使う宣言をしていないためです。</p>
+<p>そこで、<code>zsh</code>内の<code>oh-my-zsh</code>、<code>plugins</code>の中に<code>autojump</code>を使用することを宣言します:</p>
+<div class="sourceCode" id="cb9" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">oh-my-zsh</span> = {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">enable</span> = true<span class="kw">;</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="ex">plugins</span> = [</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;autojump&quot;</span> <span class="co"># &lt;- この行を追加した</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;extract&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;fzf&quot;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;git&quot;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;web-search&quot;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span></code></pre></div>
+<p>また、<code>autojump</code>をインストールする必要があります。 <a href="https://github.com/wting/autojump">autojumpのGitHubリポジトリ</a>で、 導入方法を確認してみると、 「<code>autojump</code>リポジトリ内の<code>install.py</code>を実行してインストールする」と書かれています。 つまり、<code>autojump</code>を導入するには、Pythonが必要になります。</p>
+<p>ここで、蛇足ではあるものの、ある程度重要な話をします。 インストール時のみにPythonが必要である場合、 <code>nix-shell -p python</code>を実行すれば<strong>一時的にPythonがある環境に入れる</strong>ので、 <strong>グローバル環境にPythonを入れることなく、インストールを済ませる</strong>ことができます。 筆者はこの方法でインストールし、使用することを試みましたが、 <code>autojump</code>については、動作するのにもPythonが必要であるため、 グローバルにPythonを入れる必要があるみたいです。 今回は結局グローバル環境に必要になってしまいましたが、一時的に使う方法も覚えておくと便利です。</p>
+<p>ということで、グローバルにPythonがある環境が必要となりました。 これは簡単です。<code>home</code>の<code>packages</code>内に<code>python</code>を追加するだけです。</p>
+<div class="sourceCode" id="cb10" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home</span> = {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">homeDirectory</span> = builtins.getEnv <span class="st">&quot;HOME&quot;</span><span class="kw">;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="ex">language.base</span> = <span class="st">&quot;en_US.UTF-8&quot;</span><span class="kw">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="ex">packages</span> = with pkgs<span class="kw">;</span> <span class="bu">[</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      cachix</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      niv</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>      python <span class="er">#</span> <span class="op">&lt;</span>- <span class="ex">この行を追加</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>      <span class="ex">yarn</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="ex">sessionPath</span> = [</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.local/bin&quot;</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="ex">sessionVariables</span> = {</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>      <span class="ex">EDITOR</span> = <span class="st">&quot;nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="ex">stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="ex">username</span> = builtins.getEnv <span class="st">&quot;USER&quot;</span><span class="kw">;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span><span class="kw">;</span></span></code></pre></div>
+<p>これで<code>home-manager switch</code>を実行して、<code>autojump</code>、 および<code>python</code>を追加した新しい環境に切り替えます。</p>
+<p>説明通り、Pythonを使って<code>autojump</code>をインストールします。</p>
+<pre><code>$ ~/.config/zsh/plugins/autojump/install.py</code></pre>
+<p>これで<code>autojump</code>が使えるようになりました。</p>
+<p>どのように使うのか、デモを載せておきます:</p>
+<details>
+<summary>
+autojumpのデモ
+</summary>
+<div>
+<pre><code>$ cd ~
+$ mkdir tmp             # デモ用の一時的なディレクトリ
+$ mkdir tmp/hoge        # デモ用の一時的なディレクトリ
+$ mkdir tmp/hoge/fuga   # デモ用の一時的なディレクトリ
+$ cd hoge               # hogeに訪問して足跡をつけておく
+$ cd fuga               # fugaに訪問して足跡をつけておく
+$ cd ~                  # 一度ホームディレクトリに戻る
+$ j h                   # hogeって名前を忘れてしまったけど、hを含むことは覚えている
+/home/username/tmp/hoge # hogeに移動している
+$ pwd                   # 本当に移動できているか確認
+/home/username/tmp/hoge # 移動している
+$ j f                   # fugaって名前を忘れてしまったけど、fを含むことは覚えている
+/home/username/tmp/hoge/fuga # fugaに移動した
+$ pwd                        # 本当に移動できているか確認
+/home/username/tmp/hoge/fuga # 移動している
+$ cd ~                  # お掃除するためにホームディレクトリへ
+$ rm -r tmp             # お掃除</code></pre>
+</div>
+</details>
+<h1 data-number="3" id="lsコマンドをかっこよくする"><span class="header-section-number">3</span> lsコマンドをかっこよくする</h1>
+<p>本節では、<code>ls</code>コマンドで表示されるディレクトリやファイルに、 色を割り当てる方法を記述します。</p>
+<p>とはいっても、仕組みが若干複雑なので、動けばヨシ！ということで、 詳しい話は省略します。 <a href="https://github.com/trapd00r/LS_COLORS/blob/master/LS_COLORS">GitHub上のtrapd/LS_COLORS</a> を使用させていただきます。</p>
+<p>何をしているのか詳しく知りたい方は、以下の2本の動画をご視聴ください:</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/1nU_hR2kod4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+</iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PmD8Qe8z2sY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+</iframe>
+<p><code>home.nix</code>の<code>home.packages</code>の箇所を次のように書き換えます:</p>
+<div class="sourceCode" id="cb13" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">packages</span> = with pkgs<span class="kw">;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>      <span class="bu">let</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>        <span class="ex">LS_COLORS</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>        <span class="ex">owner</span> = <span class="st">&quot;trapd00r&quot;</span><span class="kw">;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        <span class="ex">repo</span> = <span class="st">&quot;LS_COLORS&quot;</span><span class="kw">;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">rev</span> = <span class="st">&quot;2402dfac278ec88909e8a4883b680fb1591fcd3f&quot;</span><span class="kw">;</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="ex">sha256</span> = lib.fakeSha256<span class="kw">;</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>      <span class="ex">ls-colors</span> = pkgs.runCommand <span class="st">&quot;ls-colors&quot;</span> { } <span class="st">&#39;&#39;</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mkdir</span> <span class="at">-p</span> <span class="va">$out</span>/bin <span class="va">$out</span>/share</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ln</span> <span class="at">-s</span> <span class="va">${pkgs</span><span class="er">.coreutils</span><span class="va">}</span>/bin/ls <span class="va">$out</span>/bin/ls</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ln</span> <span class="at">-s</span> <span class="va">${pkgs</span><span class="er">.coreutils</span><span class="va">}</span>/bin/dircolors <span class="va">$out</span>/bin/dircolors</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cp</span> <span class="va">${LS_COLORS}</span>/LS_COLORS <span class="va">$out</span>/share/LS_COLORS</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;&#39;</span><span class="kw">;</span>    </span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>      <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>        cachix</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>        ls-colors # <span class="er">&lt;-</span> <span class="ex">ここも追加しています</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>        <span class="ex">niv</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        <span class="ex">python</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        <span class="ex">yarn</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>      <span class="ex">]</span><span class="kw">;</span></span></code></pre></div>
+<p>また、<code>zsh</code>の<code>envExtra</code>内に</p>
+<div class="sourceCode" id="cb14" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>        <span class="bu">eval</span> <span class="va">$(</span><span class="fu">dircolors</span> ~/.nix-profile/share/LS_COLORS<span class="va">)</span></span></code></pre></div>
+<p>を追記し、<code>shellAliases</code>に<code>ls = "ls --color=auto -F"</code>というエイリアスを追加すれば、完了です。</p>
+<p><code>home-manager switch</code>を実行すると、また<code>sha256</code>のハッシュ値でエラーが出るので、 上の説明と同様、<code>got</code>に書かれた<code>sha256</code>を設定してください。</p>
+<p><code>ls</code>コマンドで表示される内容がカラフルになりました！</p>
+<h1 data-number="4" id="まとめ"><span class="header-section-number">4</span> まとめ</h1>
+<p>外部パッケージの導入方法を紹介し、それを利用して <code>autojump</code>プラグインを有効にし、 <code>ls</code>コマンドで表示される色をカラフルにしました。</p>
+<p>最後に、最終的な<code>home.nix</code>を載せて終わります:</p>
+<details>
+<summary>
+ここまでの<code>home.nix</code>
+</summary>
+<div>
+<p><strong>※<code>sha256</code>のハッシュ値は異なるかもしれません</strong></p>
+<div class="sourceCode" id="cb15" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">config,</span> lib, pkgs, ... }:</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home</span> = {</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">homeDirectory</span> = builtins.getEnv <span class="st">&quot;HOME&quot;</span><span class="kw">;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="ex">language.base</span> = <span class="st">&quot;en_US.UTF-8&quot;</span><span class="kw">;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">packages</span> = with pkgs<span class="kw">;</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>      <span class="bu">let</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>        <span class="ex">LS_COLORS</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>        <span class="ex">owner</span> = <span class="st">&quot;trapd00r&quot;</span><span class="kw">;</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>        <span class="ex">repo</span> = <span class="st">&quot;LS_COLORS&quot;</span><span class="kw">;</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">rev</span> = <span class="st">&quot;2402dfac278ec88909e8a4883b680fb1591fcd3f&quot;</span><span class="kw">;</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>        <span class="ex">sha256</span> = <span class="st">&quot;Ny5jeh2lZMSADfG8KuoiD3X2P8Uwk/XjsCtXoOXuHWU=&quot;</span><span class="kw">;</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">};</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>      <span class="ex">ls-colors</span> = pkgs.runCommand <span class="st">&quot;ls-colors&quot;</span> { } <span class="st">&#39;&#39;</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mkdir</span> <span class="at">-p</span> <span class="va">$out</span>/bin <span class="va">$out</span>/share</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ln</span> <span class="at">-s</span> <span class="va">${pkgs</span><span class="er">.coreutils</span><span class="va">}</span>/bin/ls <span class="va">$out</span>/bin/ls</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ln</span> <span class="at">-s</span> <span class="va">${pkgs</span><span class="er">.coreutils</span><span class="va">}</span>/bin/dircolors <span class="va">$out</span>/bin/dircolors</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cp</span> <span class="va">${LS_COLORS}</span>/LS_COLORS <span class="va">$out</span>/share/LS_COLORS</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;&#39;</span><span class="kw">;</span>    </span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>      <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>        cachix</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>        ls-colors</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>        niv</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>        <span class="er">python</span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>        <span class="er">yarn</span></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>      <span class="bu">]</span><span class="er">;</span></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>    <span class="er">sessionPath</span> <span class="er">=</span> <span class="bu">[</span></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.local/bin&quot;</span></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>    <span class="bu">]</span><span class="kw">;</span></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>    <span class="ex">sessionVariables</span> = {</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>      <span class="ex">EDITOR</span> = <span class="st">&quot;nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">};</span></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>    <span class="ex">stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>    <span class="ex">username</span> = builtins.getEnv <span class="st">&quot;USER&quot;</span><span class="kw">;</span></span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs</span> = {</span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>    <span class="ex">direnv</span> = {</span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>      <span class="ex">nix-direnv.enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>    <span class="ex">gh</span> = {</span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">git</span> = {</span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a>      <span class="ex">userEmail</span> = <span class="st">&quot;potassium.iodide28@gmail.com&quot;</span><span class="kw">;</span></span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a>      <span class="ex">userName</span> = <span class="st">&quot;PotassiumIodide&quot;</span><span class="kw">;</span></span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a>    <span class="ex">home-manager</span> = {</span>
+<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">zsh</span> = {</span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>      <span class="ex">autocd</span> = true<span class="kw">;</span></span>
+<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a>      <span class="ex">defaultKeymap</span> = <span class="st">&quot;emacs&quot;</span><span class="kw">;</span></span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>      <span class="ex">dotDir</span> = <span class="st">&quot;.config/zsh&quot;</span><span class="kw">;</span></span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a>      <span class="ex">enableAutosuggestions</span> = true<span class="kw">;</span></span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a>      <span class="ex">enableCompletion</span> = true<span class="kw">;</span></span>
+<span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a>      <span class="ex">enableSyntaxHighlighting</span> = true<span class="kw">;</span></span>
+<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a>      <span class="ex">envExtra</span> = <span class="st">&#39;&#39;</span></span>
+<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">[</span> <span class="ot">-e</span> ~/.nix-profile/etc/profile.d/nix.sh <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a>          <span class="bu">.</span> ~/.nix-profile/etc/profile.d/nix.sh</span>
+<span id="cb15-70"><a href="#cb15-70" aria-hidden="true" tabindex="-1"></a>        <span class="cf">fi</span></span>
+<span id="cb15-71"><a href="#cb15-71" aria-hidden="true" tabindex="-1"></a>        <span class="bu">eval</span> <span class="va">$(</span><span class="fu">dircolors</span> ~/.nix-profile/share/LS_COLORS<span class="va">)</span></span>
+<span id="cb15-72"><a href="#cb15-72" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;&#39;</span><span class="kw">;</span></span>
+<span id="cb15-73"><a href="#cb15-73" aria-hidden="true" tabindex="-1"></a>      <span class="ex">initExtra</span> =<span class="st">&#39;&#39;</span></span>
+<span id="cb15-74"><a href="#cb15-74" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> no_beep</span>
+<span id="cb15-75"><a href="#cb15-75" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> auto_pushd</span>
+<span id="cb15-76"><a href="#cb15-76" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> pushd_ignore_dups</span>
+<span id="cb15-77"><a href="#cb15-77" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> inc_append_history</span>
+<span id="cb15-78"><a href="#cb15-78" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;&#39;</span><span class="kw">;</span></span>
+<span id="cb15-79"><a href="#cb15-79" aria-hidden="true" tabindex="-1"></a>      <span class="bu">history</span> = {</span>
+<span id="cb15-80"><a href="#cb15-80" aria-hidden="true" tabindex="-1"></a>        <span class="ex">extended</span> = true<span class="kw">;</span></span>
+<span id="cb15-81"><a href="#cb15-81" aria-hidden="true" tabindex="-1"></a>        <span class="ex">ignoreDups</span> = true<span class="kw">;</span></span>
+<span id="cb15-82"><a href="#cb15-82" aria-hidden="true" tabindex="-1"></a>        <span class="ex">save</span> = 1000000<span class="kw">;</span></span>
+<span id="cb15-83"><a href="#cb15-83" aria-hidden="true" tabindex="-1"></a>        <span class="ex">share</span> = true<span class="kw">;</span></span>
+<span id="cb15-84"><a href="#cb15-84" aria-hidden="true" tabindex="-1"></a>        <span class="fu">size</span> = 1000000<span class="kw">;</span></span>
+<span id="cb15-85"><a href="#cb15-85" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-86"><a href="#cb15-86" aria-hidden="true" tabindex="-1"></a>      <span class="ex">oh-my-zsh</span> = {</span>
+<span id="cb15-87"><a href="#cb15-87" aria-hidden="true" tabindex="-1"></a>        <span class="bu">enable</span> = true<span class="kw">;</span> </span>
+<span id="cb15-88"><a href="#cb15-88" aria-hidden="true" tabindex="-1"></a>        <span class="ex">plugins</span> = [</span>
+<span id="cb15-89"><a href="#cb15-89" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;autojump&quot;</span></span>
+<span id="cb15-90"><a href="#cb15-90" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;extract&quot;</span></span>
+<span id="cb15-91"><a href="#cb15-91" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;fzf&quot;</span></span>
+<span id="cb15-92"><a href="#cb15-92" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;git&quot;</span></span>
+<span id="cb15-93"><a href="#cb15-93" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;web-search&quot;</span></span>
+<span id="cb15-94"><a href="#cb15-94" aria-hidden="true" tabindex="-1"></a>        <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb15-95"><a href="#cb15-95" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-96"><a href="#cb15-96" aria-hidden="true" tabindex="-1"></a>      <span class="ex">plugins</span> =</span>
+<span id="cb15-97"><a href="#cb15-97" aria-hidden="true" tabindex="-1"></a>        <span class="bu">let</span></span>
+<span id="cb15-98"><a href="#cb15-98" aria-hidden="true" tabindex="-1"></a>          <span class="ex">autojump</span> = {</span>
+<span id="cb15-99"><a href="#cb15-99" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb15-100"><a href="#cb15-100" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb15-101"><a href="#cb15-101" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;wting&quot;</span><span class="kw">;</span></span>
+<span id="cb15-102"><a href="#cb15-102" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb15-103"><a href="#cb15-103" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;06e082c91805cb022900819b2e0881eeae780d58&quot;</span><span class="kw">;</span></span>
+<span id="cb15-104"><a href="#cb15-104" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = <span class="st">&quot;mrPMgwVkqOlKjvy1106MUKF7OlEtKdt8E9mqCg7U9+U=&quot;</span><span class="kw">;</span></span>
+<span id="cb15-105"><a href="#cb15-105" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-106"><a href="#cb15-106" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-107"><a href="#cb15-107" aria-hidden="true" tabindex="-1"></a>          <span class="ex">zsh-autosuggestions</span> = {</span>
+<span id="cb15-108"><a href="#cb15-108" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;zsh-autosuggestions&quot;</span><span class="kw">;</span></span>
+<span id="cb15-109"><a href="#cb15-109" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb15-110"><a href="#cb15-110" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;zsh-users&quot;</span><span class="kw">;</span></span>
+<span id="cb15-111"><a href="#cb15-111" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;zsh-autosuggestions&quot;</span><span class="kw">;</span></span>
+<span id="cb15-112"><a href="#cb15-112" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;a411ef3e0992d4839f0732ebeb9823024afaaaa8&quot;</span><span class="kw">;</span></span>
+<span id="cb15-113"><a href="#cb15-113" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = <span class="st">&quot;KLUYpUu4DHRumQZ3w59m9aTW6TBKMCXl2UcKi4uMd7w=&quot;</span><span class="kw">;</span></span>
+<span id="cb15-114"><a href="#cb15-114" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-115"><a href="#cb15-115" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-116"><a href="#cb15-116" aria-hidden="true" tabindex="-1"></a>        <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb15-117"><a href="#cb15-117" aria-hidden="true" tabindex="-1"></a>          autojump</span>
+<span id="cb15-118"><a href="#cb15-118" aria-hidden="true" tabindex="-1"></a>          # zsh-autosuggestions</span>
+<span id="cb15-119"><a href="#cb15-119" aria-hidden="true" tabindex="-1"></a>        <span class="bu">]</span><span class="er">;</span></span>
+<span id="cb15-120"><a href="#cb15-120" aria-hidden="true" tabindex="-1"></a>      <span class="er">shellAliases</span> <span class="er">=</span></span>
+<span id="cb15-121"><a href="#cb15-121" aria-hidden="true" tabindex="-1"></a>        <span class="kw">{</span></span>
+<span id="cb15-122"><a href="#cb15-122" aria-hidden="true" tabindex="-1"></a>          <span class="ex">h</span> = <span class="st">&quot;history&quot;</span><span class="kw">;</span></span>
+<span id="cb15-123"><a href="#cb15-123" aria-hidden="true" tabindex="-1"></a>          <span class="ex">hs</span> = <span class="st">&quot;history | grep&quot;</span><span class="kw">;</span></span>
+<span id="cb15-124"><a href="#cb15-124" aria-hidden="true" tabindex="-1"></a>          <span class="ex">hsi</span> = <span class="st">&quot;history | grep -i&quot;</span><span class="kw">;</span></span>
+<span id="cb15-125"><a href="#cb15-125" aria-hidden="true" tabindex="-1"></a>          <span class="ex">l</span>  = <span class="st">&quot;ls -CF&quot;</span><span class="kw">;</span></span>
+<span id="cb15-126"><a href="#cb15-126" aria-hidden="true" tabindex="-1"></a>          <span class="ex">la</span> = <span class="st">&quot;ls -A&quot;</span><span class="kw">;</span></span>
+<span id="cb15-127"><a href="#cb15-127" aria-hidden="true" tabindex="-1"></a>          <span class="ex">ll</span> = <span class="st">&quot;ls -alF&quot;</span><span class="kw">;</span></span>
+<span id="cb15-128"><a href="#cb15-128" aria-hidden="true" tabindex="-1"></a>          <span class="fu">ls</span> = <span class="st">&quot;ls --color=auto -F&quot;</span><span class="kw">;</span></span>
+<span id="cb15-129"><a href="#cb15-129" aria-hidden="true" tabindex="-1"></a>          <span class="ex">vi</span> = <span class="st">&quot;nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb15-130"><a href="#cb15-130" aria-hidden="true" tabindex="-1"></a>          <span class="ex">view</span> = <span class="st">&quot;nvim -R&quot;</span><span class="kw">;</span></span>
+<span id="cb15-131"><a href="#cb15-131" aria-hidden="true" tabindex="-1"></a>          <span class="ex">vim</span> = <span class="st">&quot;nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb15-132"><a href="#cb15-132" aria-hidden="true" tabindex="-1"></a>        <span class="kw">};</span></span>
+<span id="cb15-133"><a href="#cb15-133" aria-hidden="true" tabindex="-1"></a>      <span class="ex">zplug</span> = {</span>
+<span id="cb15-134"><a href="#cb15-134" aria-hidden="true" tabindex="-1"></a>        <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-135"><a href="#cb15-135" aria-hidden="true" tabindex="-1"></a>        <span class="ex">plugins</span> = [</span>
+<span id="cb15-136"><a href="#cb15-136" aria-hidden="true" tabindex="-1"></a>          <span class="kw">{</span> <span class="ex">name</span> = <span class="st">&quot;romkatv/powerlevel10k&quot;</span><span class="kw">;</span> <span class="ex">tags</span> = [ as:theme depth:1 ]<span class="kw">;</span> <span class="kw">}</span></span>
+<span id="cb15-137"><a href="#cb15-137" aria-hidden="true" tabindex="-1"></a>        <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb15-138"><a href="#cb15-138" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-139"><a href="#cb15-139" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-140"><a href="#cb15-140" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-141"><a href="#cb15-141" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span></code></pre></div>
+</div>
+</details>
+]]></description>
+    <pubDate>Mon, 31 Jan 2022 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/imamlab.log/2022-01-31-using-zsh-plugin-from-github.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+<item>
+    <title>Nix学習備忘録Part 2-1: Home ManagerでZ Shellを導入する</title>
+    <link>https://PotassiumIodide.github.io/imamlab.log/2022-01-30-starting-zsh-with-home-manager.html</link>
+    <description><![CDATA[<nav role="navigation" class="p-toc">
+  <h2 class="p-toc__header">
+    目次
+  </h2>
+  <div class="p-toc__contents">
+    <ul>
+    <li><a href="#はじめに"><span class="toc-section-number">1</span> はじめに</a>
+    <ul>
+    <li><a href="#シェルとは"><span class="toc-section-number">1.1</span> シェルとは</a></li>
+    </ul></li>
+    <li><a href="#今回行うhome-managerを用いたzshの設定"><span class="toc-section-number">2</span> 今回行うHome Managerを用いたzshの設定</a>
+    <ul>
+    <li><a href="#homenixの記述"><span class="toc-section-number">2.1</span> home.nixの記述</a></li>
+    <li><a href="#既定のシェルをzshへ変更する"><span class="toc-section-number">2.2</span> 既定のシェルをzshへ変更する</a></li>
+    </ul></li>
+    <li><a href="#zshのカスタマイズ"><span class="toc-section-number">3</span> zshのカスタマイズ</a>
+    <ul>
+    <li><a href="#powerlevel10k-ターミナルの見た目を簡単に設定する"><span class="toc-section-number">3.1</span> powerlevel10k: ターミナルの見た目を簡単に設定する</a></li>
+    <li><a href="#zshの便利なコマンド"><span class="toc-section-number">3.2</span> zshの便利なコマンド</a></li>
+    <li><a href="#基本設定"><span class="toc-section-number">3.3</span> 基本設定</a></li>
+    <li><a href="#oh-my-zshによるプラグインの設定"><span class="toc-section-number">3.4</span> oh my zshによるプラグインの設定</a></li>
+    <li><a href="#外部プラグインの利用について別記事に回します"><span class="toc-section-number">3.5</span> 外部プラグインの利用について(別記事に回します)</a></li>
+    </ul></li>
+    <li><a href="#まとめ"><span class="toc-section-number">4</span> まとめ</a></li>
+    </ul>
+  </div>
+</nav>
+<h1 data-number="1" id="はじめに"><span class="header-section-number">1</span> はじめに</h1>
+<p>本記事ではHome Managerを用いてZ Shellを導入し、各種設定を行います。 先に<code>home.nix</code>の記述を載せているので、筆者と同じ設定で取り敢えず済ませたい方は、 <a href="#homenixの記述">2.1</a>、 <a href="#既定のシェルをzshへ変更する">2.2</a>、 <a href="#powerlevel10k-ターミナルの見た目を簡単に設定する">3.1</a> だけ読めば設定できます。残りは各種設定の解説です。</p>
+<!--more-->
+<p>zshの設定に詳しい方は、<a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/zsh.nix">Home Managerのzsh.nix</a> を見て、ご自身の<code>.zshrc</code>と見比べながら設定すれば、簡単に移行できると思います。</p>
+<p><strong>Z shell</strong>(ズィーシェル、zsh)はUnixのコマンドシェルの1つです。</p>
+<p>そのため、先に軽くシェルの説明を行います。ご存じの方は読み飛ばして頂いて構いません。</p>
+<h2 data-number="1.1" id="シェルとは"><span class="header-section-number">1.1</span> シェルとは</h2>
+<p>Unix系のOSを操作するには<strong>カーネル</strong>(kernel)と呼ばれる場所に命令を出す必要がありますが、 ユーザーが直接カーネルに命令を出すことはできません。 カーネルの周りを覆う殻、すなわち<strong>シェル</strong>(shell)を介して命令を出す必要があります。 このシェルを起動し、使用するためのソフトが<strong>端末</strong>(terminal)です。</p>
+<p><img src="/images/shell.png" alt="シェルとは" /><br />
+</p>
+<p>シェルにも色々な種類があり、bashやzshの他、fishやeshellなど、数多くあります。 Linuxの場合、標準はほとんどがbashというシェルになっています。 MacOSの場合、10.15 Catalinaからデフォルトのシェルはzshとなっています。</p>
+<p>個人的に調べた感じだと、bash以外のシェルだと、zshとfishが人気だと感じました。 本記事では、bashより柔軟で使いやすいと言われており、設定に関する記事も豊富なzshを導入していきます。</p>
+<h1 data-number="2" id="今回行うhome-managerを用いたzshの設定"><span class="header-section-number">2</span> 今回行うHome Managerを用いたzshの設定</h1>
+<p>「細々した設定の説明は良いから、取り敢えず筆者と同じ設定使ってみて、後で適当に自分で弄るわ！」 って方もいらっしゃると思うので、今回作る完成形を先に載せておきます。</p>
+<h2 data-number="2.1" id="homenixの記述"><span class="header-section-number">2.1</span> home.nixの記述</h2>
+<details>
+<summary>
+今回行うzshの設定
+</summary>
+<div>
+<p>以下の記述を<code>~/.config/nixpkgs/home.nix</code>内の<a href="https://potassiumiodide.github.io/imamlab.log/2022-01-29-starting-home-manager.html">前回の記事</a> のひな形に書いた<code>programs = {};</code>の中に記述します。</p>
+<div class="sourceCode" id="cb1" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>    <span class="fu">zsh</span> = {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>      <span class="ex">autocd</span> = true<span class="kw">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>      <span class="ex">defaultKeymap</span> = <span class="st">&quot;emacs&quot;</span><span class="kw">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>      <span class="ex">dotDir</span> = <span class="st">&quot;.config/zsh&quot;</span><span class="kw">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>      <span class="ex">enableAutosuggestions</span> = true<span class="kw">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>      <span class="ex">enableCompletion</span> = true<span class="kw">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>      <span class="ex">enableSyntaxHighlighting</span> = true<span class="kw">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>      <span class="ex">envExtra</span> = <span class="st">&#39;&#39;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">[</span> <span class="ot">-e</span> ~/.nix-profile/etc/profile.d/nix.sh <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>          <span class="bu">.</span> ~/.nix-profile/etc/profile.d/nix.sh</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">fi</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;&#39;</span><span class="kw">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>      <span class="ex">initExtra</span> =<span class="st">&#39;&#39;</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> no_beep</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> auto_pushd</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> pushd_ignore_dups</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> inc_append_history</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;&#39;</span><span class="kw">;</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      <span class="bu">history</span> = {</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        <span class="ex">extended</span> = true<span class="kw">;</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        <span class="ex">ignoreDups</span> = true<span class="kw">;</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>        <span class="ex">save</span> = 1000000<span class="kw">;</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>        <span class="ex">share</span> = true<span class="kw">;</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">size</span> = 1000000<span class="kw">;</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>      <span class="ex">oh-my-zsh</span> = {</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        <span class="bu">enable</span> = true<span class="kw">;</span> </span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        <span class="ex">plugins</span> = [</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;extract&quot;</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;fzf&quot;</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;git&quot;</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;web-search&quot;</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>        <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>      <span class="ex">shellAliases</span> =</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        <span class="kw">{</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>          <span class="ex">h</span> = <span class="st">&quot;history&quot;</span><span class="kw">;</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>          <span class="ex">hs</span> = <span class="st">&quot;history | grep&quot;</span><span class="kw">;</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>          <span class="ex">hsi</span> = <span class="st">&quot;history | grep -i&quot;</span><span class="kw">;</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>          <span class="ex">ll</span> = <span class="st">&quot;ls -alF&quot;</span><span class="kw">;</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>          <span class="ex">la</span> = <span class="st">&quot;ls -A&quot;</span><span class="kw">;</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>          <span class="ex">l</span>  = <span class="st">&quot;ls -CF&quot;</span><span class="kw">;</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>          <span class="ex">vi</span> = <span class="st">&quot;nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>          <span class="ex">view</span> = <span class="st">&quot;nvim -R&quot;</span><span class="kw">;</span></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>          <span class="ex">vim</span> = <span class="st">&quot;nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>        <span class="kw">};</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>      <span class="ex">zplug</span> = {</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>        <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>        <span class="ex">plugins</span> = [</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>          <span class="kw">{</span> <span class="ex">name</span> = <span class="st">&quot;romkatv/powerlevel10k&quot;</span><span class="kw">;</span> <span class="ex">tags</span> = [ as:theme depth:1 ]<span class="kw">;</span> <span class="kw">}</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>        <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span></code></pre></div>
+</div>
+</details>
+<h2 data-number="2.2" id="既定のシェルをzshへ変更する"><span class="header-section-number">2.2</span> 既定のシェルをzshへ変更する</h2>
+<p><code>home-manager switch</code>で上のzshの設定が反映された<code>home.nix</code>を読み込みます。 しかし、これだけでは再びターミナルを開き直しても、いつも通りのシェルが起動します。 現在のシェルを変更するために、<code>chsh</code>コマンドを使って設定します。</p>
+<pre><code>$ echo $SHELL
+/bin/bash
+$ command -v zsh
+/home/username/.nix-profile/bin/zsh
+$ sudo chsh -s &quot;$(command -v zsh)&quot; &quot;${USER}&quot;</code></pre>
+<p>これでターミナルを起動し直すと(なぜか私は2回起動し直す必要がありました)、 後述しますが、初回起動時のみ、<a href="https://github.com/romkatv/powerlevel10k">powerlevel10k</a> というシェルの見た目を簡単に設定できるものが起動します。</p>
+<p>質問に答えていくだけですが、わからない場合は次で紹介するpowerlevel10kのパートで設定方法を確認してください。</p>
+<details>
+<summary>
+Visual Studio Codeでの既定のシェルの設定
+</summary>
+<div>
+<code>Ctrl+Shift+@</code>でターミナルを起動し、+ボタンの右にある<i class="fas fa-chevron-down"></i>をクリックし、 既定のプロファイルの選択をクリックして、<code>zsh</code>を選択する。
+</div>
+</details>
+<h1 data-number="3" id="zshのカスタマイズ"><span class="header-section-number">3</span> zshのカスタマイズ</h1>
+<p>前節で設定したものについて細かく見ていきます。 本来なら基本設定から解説した方が良いですが、上の設定をコピペでスタートした人のために、まずpowerlevel10kから解説します。</p>
+<h2 data-number="3.1" id="powerlevel10k-ターミナルの見た目を簡単に設定する"><span class="header-section-number">3.1</span> powerlevel10k: ターミナルの見た目を簡単に設定する</h2>
+<p>GitHubのリポジトリはこちら(<a href="https://github.com/romkatv/powerlevel10k" class="uri">https://github.com/romkatv/powerlevel10k</a>)</p>
+<h3 data-number="3.1.1" id="homenixへの記述"><span class="header-section-number">3.1.1</span> home.nixへの記述</h3>
+<p><code>home.nix</code>の<code>programs.zsh</code>内の以下の部分で導入しています:</p>
+<div class="sourceCode" id="cb3" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">zplug</span> = {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        <span class="ex">plugins</span> = [</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>          <span class="kw">{</span> <span class="ex">name</span> = <span class="st">&quot;romkatv/powerlevel10k&quot;</span><span class="kw">;</span> <span class="ex">tags</span> = [ as:theme depth:1 ]<span class="kw">;</span> <span class="kw">}</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span></code></pre></div>
+<p>ちなみに、Home Managerを使わずにやると、手動で設定すること(<code>ZSH_THEME</code>の設定等)が少しだけ多いのですが、 その辺りの細々した作業も全部やってくれます。有難い。。。</p>
+<h3 data-number="3.1.2" id="フォントの設定"><span class="header-section-number">3.1.2</span> フォントの設定</h3>
+<p>ただし、このフォント設定を行わないと、アイコンが上手く表示されなかったりします。 別に気にしない方や、ターミナルのフォントを変更したくない場合はこちらのステップは省略可能なので、次のステップに進んでください。</p>
+<ol type="1">
+<li><a href="https://github.com/romkatv/powerlevel10k">powerlevel10kのGitHubリポジトリ</a>にアクセスする。</li>
+<li><code>README.md</code>の1/4くらいにあるFontsを見つける(「Fonts」でページ内検索するなどして見つけてください)。</li>
+<li>Manual font installationにある、以下の4つのフォント(<code>ttf</code>ファイル)をダウンロードする:</li>
+</ol>
+<ul>
+<li><code>MesloLGS NF Regular.ttf</code></li>
+<li><code>MesloLGS NF Bold.ttf</code></li>
+<li><code>MesloLGS NF Italic.ttf</code></li>
+<li><code>MesloLGS NF Bold Italic.ttf</code></li>
+</ul>
+<ol start="4" type="1">
+<li>各ファイルを開くと、「インストール(Install)」または「フォントをインストール(Install Font)」というボタンがあるので、クリックしてインストールする。</li>
+</ol>
+<p>以下、ターミナルごとにフォントの設定を行う:</p>
+<dl id="powerlevel10k-font-settings-guide" class="p-accordion" role="tablist">
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="powerlevel10k-font-settings-guide" type="button">
+iTerm2
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>以下のいずれか:</p>
+<ul>
+<li><code>p10k configure</code>を実行し、<em>Meslo Nerd Font</em>をインストールしますか？という質問に<code>Yes</code>と答える。</li>
+<li>iTerm2 → 環境設定(Preferences) → プロファイル(Profiles) → テキスト(Text)の順で開き、フォント(Font)を<code>MesloLGS NF</code>に設定する。
+</dd>
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="powerlevel10k-font-settings-guide" type="button">
+Appleターミナル
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+ターミナル(Terminal) → 環境設定(Preferences) → プロファイル(Profiles) → テキスト(Text)の順で開き、フォント(Font)を<code>MesloLGS NF</code>に設定する。
+</dd>
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="powerlevel10k-font-settings-guide" type="button">
+Visual Studio Code
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+左下の歯車マーク→設定(Settings)の順で開き、検索ボックスに「<code>terminal.integrated.fontFamily</code>」と入力して検索し、 値を<code>MelsoLGS NF</code>に設定する。 VS Codeをフォントのインストール前から開いていた場合、「ご使用の端末はモノスペース フォントのみをサポートします。 これが新しくインストールされたフォントである場合は、VS Codeを再起動してください。」と出るので、 指示に従い、VS Codeを再起動してください。
+</dd>
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="powerlevel10k-font-settings-guide" type="button">
+Windowsターミナル
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+タブを追加する+ボタンの右の<i class="fas fa-chevron-down"></i>をクリックすると、設定が開く。 左側のメニューのプロファイルにある既定値を選択し、外観をクリックする。 フォントフェイスを<code>MesloLGS NF</code>に設定する。
+</dd>
+</dl></li>
+</ul>
+<h3 data-number="3.1.3" id="powershell10kの設定について"><span class="header-section-number">3.1.3</span> powershell10kの設定について</h3>
+<p>powershell10kを設定した後、初めてシェルを起動すると、設定が始まります。 基本的には、質問に対して答えていくだけですが、一応英語が苦手な方のためにも質問の内容を記載します。 ちなみに、次の節で解説するように、<strong>設定を変えたい場合はいつでも簡単に再設定できる</strong>ので、忙しい方は適当に答えてても問題ありません。</p>
+<p>最初の4つの質問は、アイコンフォントが文字化けするかどうかの質問です。 前のフォントの設定を飛ばしている場合、いくつか<code>n</code>で答える箇所が出るかもしれません。</p>
+<ol type="1">
+<li><code>---&gt;</code>と<code>&lt;---</code>の間にある文字がダイヤモンド(◆)に見えているか？という質問です。 ダイヤモンドが表示されていれば<code>y</code>、文字化けしていれば<code>n</code>を入力してください。</li>
+<li>同様に、次は南京錠(<i class="fas fa-lock"></i>)が表示されているか？という質問です。 南京錠が表示されていれば<code>y</code>、文字化けしていれば<code>n</code>を入力してください。</li>
+<li>次はDebianのロゴである渦巻き模様が見えているかという質問です。 渦巻き模様が表示されていれば<code>y</code>、文字化けしていれば<code>n</code>を入力してください。</li>
+<li>次は<code>X</code>を間に挟んで、様々な色の様々なアイコンが表示されているかという質問です。 恐らく、X(赤色で<code>git</code>の文字)X(緑でGitHubのアイコン)X(黄色で時計)X(青でダイヤモンド)X(紫で家アイコン)X(水色でファイルアイコン)X(赤色で白抜きファイルアイコン)X(緑でよくわからないもの)Xが表示されると思います(違うかもしれません)。 文字化けしていなければ<code>y</code>、していれば<code>n</code>を入力してください。</li>
+</ol>
+<p>ここから先は好みでプロンプトの見た目を設定していきます。 <strong>どのプロンプトを選ぶかによって、質問の量や内容は変わります</strong>が、一応自分の設定の分だけ載せておきます。 一応選定理由も載せていますが、個人の好みなので、好きなように設定してください。</p>
+<ol start="5" type="1">
+<li>プロンプトの見た目です。情報がごちゃごちゃし過ぎるのはあまり好きではないので、私は<code>Lean</code>にします。<code>1</code>を選択します。</li>
+<li>文字セットの設定です。Unicodeが良いので、<code>1</code>を選択します。</li>
+<li>プロンプトに使う色の数です。256色で<code>1</code>を選択します。</li>
+<li>プロンプトの右側に表示する現在時刻の表示設定です。時刻くらいなら表示してても良いかなと思うので、<code>24-hours format</code>の<code>2</code>を選択します。</li>
+<li>入力行を改行するか否かの設定です。カレントディレクトリへのパスが長くなると、かなり窮屈になってしまうので、<code>Two Lines</code>の<code>2</code>を選択します。</li>
+<li>ディレクトリ情報と時刻情報の間にラインを引くか否かの設定です。シンプルに<code>Disconnected</code>の<code>1</code>を選択します。</li>
+<li>改行に付けるフレームの設定です。ここもシンプルに<code>No frame</code>の<code>1</code>を選択します。</li>
+<li>コマンドの実行後に空行を入れるかどうかの設定です。前に実行したコマンドができるだけ多く表示されていた方が好きなので、<code>Compact</code>の<code>1</code>を選択します。</li>
+<li>アイコンを表示するかどうかの設定です。直感的にわかりやすいと思うので、<code>Many icons</code>の<code>2</code>を選択します。</li>
+<li>表示により詳しい説明を加えるかどうかの設定です。流石に長くなり過ぎるので、<code>Concise</code>の<code>1</code>を選択します。</li>
+<li>コマンド実行後に、以前のコマンドの部分にもディレクトリ情報等を残すか否かの設定です。よく考えれば要らないなと思ったので、<code>No</code>の<code>n</code>を選択します。</li>
+<li>インスタントプロンプトに関する設定と出ていますが、よくわからないので、推奨されているVerboseの<code>1</code>を選択します。</li>
+<li>設定を完了して保存するかの質問です。<code>Yes</code>の<code>y</code>を選択します。</li>
+</ol>
+<p>これで設定が完了しました！個人的にプロンプトの見た目が自分好みだと、モチベーションにも繋がります。</p>
+<h3 data-number="3.1.4" id="powerlevel10kの設定をやり直す"><span class="header-section-number">3.1.4</span> powerlevel10kの設定をやり直す</h3>
+<p>ここまで行った設定はいつでも設定し直すことができます。 やり方はコマンド一つです。<code>p10k configure</code>を実行すると、再度設定画面が開き、再設定できます。 飽きたら別の見た目にいつでもカスタマイズできるということですね。</p>
+<h2 data-number="3.2" id="zshの便利なコマンド"><span class="header-section-number">3.2</span> zshの便利なコマンド</h2>
+<p>色々ありますが、便利だなと思った2つだけピックアップします。 自分自身入門したてなので、他にも便利なショートカットがあれば教えて頂けると幸いです。</p>
+<ul>
+<li><code>Ctrl+k</code>: カーソル位置から行末まで削除</li>
+<li><code>Ctrl+r</code>: 以前実行したコマンドの検索</li>
+</ul>
+<h2 data-number="3.3" id="基本設定"><span class="header-section-number">3.3</span> 基本設定</h2>
+<p>Home Managerで準備されている設定と、されていない設定があります。 準備されていない設定に関しては<code>zsh</code>の<code>initExtra</code>で設定されています。</p>
+<p>まず、</p>
+<ul>
+<li><code>enableAutosuggestions = true;</code>でサジェストを有効化、</li>
+<li><code>enableCompletion = true;</code>で補完の有効化、</li>
+<li><code>enableSyntaxHighlighting = true;</code>でシンタックスハイライトの有効化</li>
+</ul>
+<p>を行っています。</p>
+<p><code>envExtra</code>に記述している内容はNixを使う上で必要な設定なので、 あまり気にしなくてOKです。</p>
+<h3 data-number="3.3.1" id="auto_cd-ディレクトリ名の入力だけでそのディレクトリに移動する"><span class="header-section-number">3.3.1</span> auto_cd: ディレクトリ名の入力だけでそのディレクトリに移動する</h3>
+<p><code>zsh</code>内の以下の行で設定しています(通常は<code>.zshrc</code>に<code>setopt auto_cd</code>と記述します):</p>
+<div class="sourceCode" id="cb4" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">autocd</span> = true<span class="kw">;</span></span></code></pre></div>
+<p>これを設定しておくと、<code>cd</code>と入力しなくても、ディレクトリの名前だけで移動できます。</p>
+<h3 data-number="3.3.2" id="no_beep-ビープ音を消す"><span class="header-section-number">3.3.2</span> no_beep: ビープ音を消す</h3>
+<p><code>initExtra</code>内の以下の行で設定しています。</p>
+<div class="sourceCode" id="cb5" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> no_beep</span></code></pre></div>
+<p>できない操作を試みたときにビープ音を鳴らさないようにする設定です。 私はいちいちうるさいと感じるので、設定しています。</p>
+<h3 data-number="3.3.3" id="auto_pushdとpushd_ignore_dups-ディレクトリ移動をスタックで管理する"><span class="header-section-number">3.3.3</span> auto_pushdとpushd_ignore_dups: ディレクトリ移動をスタックで管理する</h3>
+<p>次の2つは少し難しいですが、<code>pushd</code>と<code>popd</code>というディレクトリの移動に便利な操作に関する設定です。 先に<code>pushd</code>と<code>popd</code>について説明します。 <strong>スタック</strong>(stack)でディレクトリの移動を管理できるというものです。</p>
+<details>
+<summary>
+<strong>スタック</strong>(stack)って何？
+</summary>
+<div>
+データ構造の一つです。<code>push</code>で最後に入れた(last-in)ものを、 <code>pop</code>で頭から取り出す(first-out)ことができる<strong>LIFO</strong>(last-in first-out)のデータ構造です。 よく挙げられる例が、本を机の上に積み上げる例です。1冊1冊本を積み上げたとき、 最初に取り出せるもの(first-out)は一番上にある本ですが、 これは最後に積んだ本(last-out)ですね。 本を積む操作が<code>push</code>、本を取り出す操作が<code>pop</code>と考えて頂ければOKです。
+</div>
+</details>
+<p><code>pushd</code>と<code>popd</code>の「<code>d</code>」はディレクトリ(directory)の頭文字です。</p>
+<details>
+<summary>
+<code>pushd</code>と<code>popd</code>のデモ
+</summary>
+<div>
+<p>以下、コマンドの状況の説明を<code>#</code>以降で説明しています。 自分で動作確認をする場合は、<code>#</code>以降は入力せずに行ってください。</p>
+<pre><code>$ cd ~                       # ホームディレクトリに移動
+$ mkdir tmp                  # デモ用のディレクトリ作成
+$ mkdir tmp/hoge             # デモ用のディレクトリ作成
+$ mkdir tmp/hoge/fuga        # デモ用のディレクトリ作成
+$ pwd                        # 現在位置の確認
+/home/username
+$ pushd tmp/hoge             # スタックにtmp/hogeを追加
+~/tmp/hoge ~                 # 最後に移動した~/tmp/hogeがスタックの先頭に追加されている
+$ pwd                        # 現在位置の確認
+/home/username/tmp/hoge      # 移動できている
+$ pushd fuga                 # スタックにfugaを追加
+~/tmp/hoge/fuga ~/tmp/hoge ~ # ~/tmp/hoge/fugaがスタックの先頭に追加されている
+$ pwd
+/home/username/tmp/hoge/fuga # 移動できている
+$ popd
+~/tmp/hoge ~                 # ~/tmp/hoge/fugaがスタックから取り出された
+$ pwd
+/home/username/tmp/hoge      # ~/tmp/hogeに移動している
+$ popd
+~                            # ~/tmp/hogeがスタックから取り出された
+$ pwd
+/home/username               # ~に移動している
+$ rm -r tmp                  # 掃除</code></pre>
+</div>
+</details>
+<p>このような形で、<code>pushd</code>で移動の履歴を残しながら、 戻りたいときには<code>popd</code>で戻ることができます。 ちょっと別のディレクトリに用事があるけど、すぐ戻りたいとき等に便利そうですね。</p>
+<p>さて、前置きが長くなりましたが、<code>setopt auto_pushd</code>と記述しておくと、 普段の<code>cd</code>コマンドが<code>pushd</code>として実行され、普段通り<code>cd</code>で移動した場合でも、 <code>popd</code>で辿って来た道のりを戻ることができます。</p>
+<p>これは<code>initExtra</code>内の以下の行で設定しています:</p>
+<div class="sourceCode" id="cb7" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> auto_pushd</span></code></pre></div>
+<p>次に、<code>setopt pushd_ignore_dups</code>ですが、これを設定していない状態で、 例えば<code>cd ~</code>を連続して何度も行うと、スタックにずっと<code>~</code>が溜まり続け、 <code>popd</code>をやってもやってもホームディレクトリから動けないという状態に陥ってしまいます。 これを避けるために、<strong>重複したディレクトリはスタックに追加しない</strong>というのが、 この<code>setopt pushd_ignore_dups</code>の設定です。</p>
+<p>これは<code>initExtra</code>内の以下の行で設定しています:</p>
+<div class="sourceCode" id="cb8" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> pushd_ignore_dups</span></code></pre></div>
+<h3 data-number="3.3.4" id="historyを使いやすくする"><span class="header-section-number">3.3.4</span> historyを使いやすくする</h3>
+<p><code>history</code>というコマンドで、以前実行したコマンドをチェックすることができ、 <code>!</code>に履歴の番号を添えて実行することで、そのコマンドを再度実行することができます。 この<code>history</code>の機能を使いやすくする設定を行います。</p>
+<p><code>home.nix</code>の<code>zsh</code>内にある以下の記述で設定しています:</p>
+<div class="sourceCode" id="cb9" data-filepath="~/config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>      <span class="bu">history</span> = {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>        <span class="ex">extended</span> = true<span class="kw">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="ex">ignoreDups</span> = true<span class="kw">;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        <span class="ex">save</span> = 1000000<span class="kw">;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        <span class="ex">share</span> = true<span class="kw">;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">size</span> = 1000000<span class="kw">;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span></code></pre></div>
+<p><code>extended = true;</code>は、<code>history</code>ファイルにタイムスタンプを保存するという設定です (通常は<code>.zshrc</code>で<code>setopt EXTENDED_HISTORY</code>と記述します)。</p>
+<p><code>ignoreDups = true;</code>は、<code>history</code>コマンドで重複するコマンドは保存しないというものです (通常は<code>.zshrc</code>で<code>setopt hist_ignore_dups</code>と記述します)。 例えば、癖で<code>ls</code>コマンドを何回も実行したりしてしまうことがよくありますが、 そういったものでコマンド履歴を汚さなくてすむようになります。</p>
+<p><code>share = true;</code>は、新しく開いたzshにも履歴をシェアするという設定です (通常は<code>.zshrc</code>で<code>setopt share_histroy</code>と記述します)。</p>
+<p><code>save = 10000000;</code>は、履歴ファイルに保存する履歴の件数の設定です (通常は<code>.zshrc</code>で<code>export SAVEHIST=1000000</code>と記述します)。</p>
+<p><code>size = 10000000;</code>は、メモリに保存する履歴の件数の設定です (通常は<code>.zshrc</code>で<code>export HISTSIZE=1000000</code>と記述します)。</p>
+<p>また、通常<code>history</code>にコマンドの履歴が保存されるのは、 再度コマンドが入力可能になるタイミングですが、 この設定だと、サーバーにアクセスするような、 しばらく結果がかえって来ないようなコマンドを実行して、 そのままターミナルを閉じてしまった場合などに、履歴にコマンドが残らなくなります。 この保存のタイミングを、実行したとき即座に行うようにする設定が、<code>initExtra</code>にある以下の記述です:</p>
+<div class="sourceCode" id="cb10" data-filepath="~/config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> inc_append_history</span></code></pre></div>
+<h2 data-number="3.4" id="oh-my-zshによるプラグインの設定"><span class="header-section-number">3.4</span> oh my zshによるプラグインの設定</h2>
+<p><code>zsh</code>内の以下の行で有効にしています:</p>
+<div class="sourceCode" id="cb11" data-filepath="~/config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">oh-my-zsh</span> = {</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">enable</span> = true<span class="kw">;</span> </span></code></pre></div>
+<p>以下、<code>plugins = [];</code>の中身に欲しいoh my zshのプラグインを書いていくだけです。</p>
+<h3 data-number="3.4.1" id="extract-ファイルを展開する"><span class="header-section-number">3.4.1</span> extract: ファイルを展開する</h3>
+<p><code>oh-my-zsh</code>の<code>plugins</code>内の以下の行で設定しています:</p>
+<div class="sourceCode" id="cb12" data-filepath="~/config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;extract&quot;</span></span></code></pre></div>
+<p>圧縮ファイルの種類はたくさんありますが、この<code>extract</code>を入れておくと、 <code>extract &lt;ファイル名&gt;</code>で大抵のファイルを展開することができるようになります。 展開できるファイルは<a href="https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/extract">oh-my-zshのextractプラグイン</a>で見ることができます。</p>
+<h3 data-number="3.4.2" id="fzf-ファイルを高速に検索する"><span class="header-section-number">3.4.2</span> fzf: ファイルを高速に検索する</h3>
+<p><code>oh-my-zsh</code>の<code>plugins</code>内の以下の行で設定しています:</p>
+<div class="sourceCode" id="cb13" data-filepath="~/config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;fzf&quot;</span></span></code></pre></div>
+<p>これにより、ターミナル上で<code>Ctrl+t</code>というショートカットでFuzzy Finderというファイル検索が起動し、 ファイル名やディレクトリ名を入れてそこに移動することが可能になります。</p>
+<h3 data-number="3.4.3" id="git-gitのaliasとfunctionを利用する"><span class="header-section-number">3.4.3</span> git: gitのaliasとfunctionを利用する</h3>
+<p><code>oh-my-zsh</code>の<code>plugins</code>内の以下の行で設定しています:</p>
+<div class="sourceCode" id="cb14" data-filepath="~/config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;git&quot;</span></span></code></pre></div>
+<p>正直、oh-my-zshの設定でデフォルトで入るものなので入れてるというだけです。 aliasについては、<a href="https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/git/git.plugin.zsh">oh-my-zshのgitプラグイン</a> を参照すれば良いかと思います。<code>ga</code>で<code>git add</code>、<code>gb</code>で<code>git branch</code>など、 たくさんaliasが設定されています。使わないなら削除しても良いかと思います。</p>
+<h3 data-number="3.4.4" id="web-search-コマンドラインから検索を行う"><span class="header-section-number">3.4.4</span> web-search: コマンドラインから検索を行う</h3>
+<p><code>oh-my-zsh</code>の<code>plugins</code>内の以下の行で設定しています:</p>
+<div class="sourceCode" id="cb15" data-filepath="~/config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;web-search&quot;</span></span></code></pre></div>
+<p>これにより、コマンドラインから<code>google</code>というコマンドでGoogle Chromeを立ち上げて検索することができるようになります。 何が嬉しいかというと、ターミナルでプログラムを実行したときに出たエラーメッセージを、 そのままターミナル内でコピーして、 例えば<code>google python command not found</code>などと入力するだけで、 「python command not found」に関するエラーをGoogle検索することができます。 わざわざブラウザを立ち上げて検索する必要がなくなります。</p>
+<h2 data-number="3.5" id="外部プラグインの利用について別記事に回します"><span class="header-section-number">3.5</span> 外部プラグインの利用について(別記事に回します)</h2>
+<p>デフォルトで入っていないプラグインでもGitHubから引っ張ってくることを記述できますが、 少し込み入った説明と、プラグインによっては<code>zsh</code>の外部に記述をする必要が出てくるので、 今回は説明しないことにします。</p>
+<h1 data-number="4" id="まとめ"><span class="header-section-number">4</span> まとめ</h1>
+<p>Home Managerを用いてzshを使えるようにしました。 外部プラグインの設定方法については、またいつか記事にまとめます。 外部プラグインの設定についても、ほんの少し複雑に感じるところはあるかもしれませんが、 Nixの強味がかなり活かせ、一度設定してしまえば移行が楽になります。</p>
+<p>NixもHome Managerも初心者なので、 理解していないことやわからないことが多くあるので、 アドバイスや、説明に誤り等を発見しましたら、ご指摘願います。</p>
+<p>Home Manager、いじればいじるほど凄いなぁとなってる今日この頃です。</p>
+]]></description>
+    <pubDate>Sun, 30 Jan 2022 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/imamlab.log/2022-01-30-starting-zsh-with-home-manager.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+<item>
+    <title>Netflixドラマ『イノセント』の感想</title>
+    <link>https://PotassiumIodide.github.io/imamlab.diary/2022-01-30-review-of-the-innocent.html</link>
+    <description><![CDATA[<h2 id="はじめに">はじめに</h2>
+<p>初めてレビュー記事を書きます。初めてというのもありますが、そもそも文章力も大して無いので、至らない点は多いと思いますが、よろしくお願いします。</p>
+<!--more-->
+<p>本来作品のポスター画像等も載せたいのですが、 SSGで自動生成する形で記事を書いていて、仕組み上画像引用元の出典書くのが難しそうなので、著作権の関係から諦めました。</p>
+<p>著作権について、そこまで詳しくないので、無難に作品の情報等は記載せず、他サイトにお任せします。</p>
+<h2 id="視聴した作品について">視聴した作品について</h2>
+<p><a href="https://www.netflix.com/title/81036936">イノセント - Netflix</a></p>
+<p>2021年、スペインで制作されたミステリー、クライム系のどんでん返しドラマです。 1話当たり1時間前後の8話構成となっています。</p>
+<p>視聴するか否かの規準として、よく参考にするサイトである <a href="https://filmarks.com/dramas/10629/14812">Filmarks</a> での評価は2021/01/30現在で4.1。</p>
+<p>元々、以下のYouTube動画:</p>
+<p><a href="https://www.youtube.com/watch?v=qENqd_0JZWQ&amp;t=575s&amp;ab_channel=%E3%82%BF%E3%82%A4%E3%83%A9%E3%83%BC%E3%81%A1%E3%82%83%E3%82%93%E3%81%AD%E3%82%8B">【ネットフリックスNetflix／衝撃のラスト&amp;どんでん返し映画Part2】ネットフリックス(NETFLIX)で見れる衝撃的なラストが待ち受けるおススメ映画6選＋α。- タイラーちゃんねる</a></p>
+<p>で存在は知っていたのですが、完全に失念しており、先日たまたま観た、</p>
+<p><a href="https://www.youtube.com/watch?v=aQhqgXwG51M&amp;t=442s&amp;ab_channel=UK%E3%82%B7%E3%83%8D%E3%83%9E%E3%83%AC%E3%82%B3%E3%83%A1%E3%83%B3">【予測不能】衝撃ラスト・どんでん返し映画＆ドラマ【Netflix・アマプラ】- UKシネマレコメン</a></p>
+<p>で再び紹介されていて、視聴しました。</p>
+<p>作品の見どころについては上のお二方の方が何倍もわかりやすく説明してくださっているので、気になる方は是非観てみてください！</p>
+<h3 id="どういう人におすすめ">どういう人におすすめ？</h3>
+<p>サスペンスものが好きで、伏線回収・どんでん返しものが好きな方にオススメです。</p>
+<h3 id="どういう人におすすめできない">どういう人におすすめできない？</h3>
+<p><strong>日本語吹き替えが無い</strong>ので、字幕だとキツいって方は注意です。</p>
+<p>また、なかなかに目を背けたくなるグロテスクな描写や、性描写等も含まれているので、家族で観ることはオススメしません。特にグロい描写については、慣れていない方や、死に敏感な方などは、なかなかショッキングかもしれません。</p>
+<h2 id="感想">感想</h2>
+<p>このドラマの監督・脚本を務めているオリオル・パウロ監督の作品、有名なものとして、『ロスト・ボディ』、『インビジブル・ゲスト』、『嵐の中で』など、どれも好きな作品ばっかりだったのですが、このドラマもなかなかに面白かったです。</p>
+<p>正直、3、4話目辺りは伏線を張り巡らせる回で、ちょっと疲れるところもあったのですが、 5話目くらいからどんどん伏線を回収し始め、スリル満点の作品となっていました。</p>
+<p>どんでん返し系ではあるのですが、難解な作品というわけでもなく、頑張って設定を追えば、一応オチ自体は予想できるものでした。こういう展開になるのかなとか、色々想像を膨らませるのも、伏線回収系作品の楽しみの一つですね。</p>
+<p>「どういうこと？」「何が起こってるんだ？」って伏線を一つ一つ散りばめながら、一気に回収するのではなく、ピースが全部一気には嵌まらないように、巧妙に回収していくのは流石だなぁと思いました。</p>
+<p>最後に、個人的に気に入らなかった点について書いて終わります。ネタバレになり得る要素を含むので、ネタバレOKな方だけ読んでください:</p>
+<details>
+<summary>
+イノセントの個人的に気に入らなかったポイント
+</summary>
+<div>
+何も悪いことをしていない善良な人たちが、悪人によって心にも身体にも深い傷を負って、命を奪われていくのに対して、悪人側は、割とあっさりとした最期を迎えるという展開が納得いきませんでしたね。やはり、警察に捕まり、正当な裁きを受けて欲しかったところです。評価の高い作品でも、結構この良い人が苦しみ、悪い人があまり苦しまずに終わるって話多いんですけど、割とそういうの気にならない人多いんですかね？笑
+</div>
+</details>]]></description>
+    <pubDate>Sun, 30 Jan 2022 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/imamlab.diary/2022-01-30-review-of-the-innocent.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+<item>
+    <title>Nix学習備忘録Part 2: Home Managerを導入する</title>
+    <link>https://PotassiumIodide.github.io/imamlab.log/2022-01-29-starting-home-manager.html</link>
+    <description><![CDATA[<nav role="navigation" class="p-toc">
+  <h2 class="p-toc__header">
+    目次
+  </h2>
+  <div class="p-toc__contents">
+    <ul>
+    <li><a href="#はじめに"><span class="toc-section-number">1</span> はじめに</a></li>
+    <li><a href="#home-managerとは"><span class="toc-section-number">2</span> Home Managerとは</a></li>
+    <li><a href="#home-mangerのインストール方法"><span class="toc-section-number">3</span> Home Mangerのインストール方法</a></li>
+    <li><a href="#homenixを更新する"><span class="toc-section-number">4</span> home.nixを更新する</a>
+    <ul>
+    <li><a href="#プログラムの追加"><span class="toc-section-number">4.1</span> プログラムの追加</a></li>
+    <li><a href="#パッケージの追加"><span class="toc-section-number">4.2</span> パッケージの追加</a></li>
+    <li><a href="#ひな形"><span class="toc-section-number">4.3</span> ひな形</a></li>
+    </ul></li>
+    <li><a href="#まとめ"><span class="toc-section-number">5</span> まとめ</a>
+    <ul>
+    <li><a href="#余談vscodeについて"><span class="toc-section-number">5.1</span> 余談(VSCodeについて)</a></li>
+    </ul></li>
+    </ul>
+  </div>
+</nav>
+<h1 data-number="1" id="はじめに"><span class="header-section-number">1</span> はじめに</h1>
+<p>Home Managerについては、既に日本語の記事がいくつか書かれているため、 ところどころ説明は省略します。</p>
+<!--more-->
+<blockquote>
+<p>参考にした記事:</p>
+<ul>
+<li><a href="https://nixos.wiki/wiki/Home_Manager">Home Manger - NixOS Wiki</a></li>
+<li><a href="https://qiita.com/hnakano863/items/47ba13633861be35bd83">Nixとhome-managerで宣言的に環境を管理する by @hnakano863 - Qiita</a></li>
+<li><a href="https://blog.hppd.dev/2021/06/12-dotfiles/">Nix home-managerを使ったdotfilesを詳解する by Aumy/おーみー - Happy Paddy</a></li>
+<li><a href="https://blog.ryota-ka.me/posts/2021/12/31/home-manager">dotfiles を Nix + Home Managerに移行した - blog.ryota-ka.me</a></li>
+</ul>
+</blockquote>
+<p>本記事は既にNixのインストールを完了していることを前提としています。 Nixをインストールしていない方は、 <a href="https://potassiumiodide.github.io/imamlab.log/2022-01-19-starting-nix.html">Nix学習備忘録Part 1: Nixに入門する</a>を参考にして、 Nixのインストールを完了してください。</p>
+<p>また、インストールする各種ソフトウェアの詳細な設定については、別途記事を設けることにします。 本記事では、取り敢えずHome Managerの概要と導入方法について簡単にまとめます。</p>
+<h1 data-number="2" id="home-managerとは"><span class="header-section-number">2</span> Home Managerとは</h1>
+<p><a href="https://github.com/nix-community/home-manager">Home Manger</a>は、 Nixパッケージマネージャを用いて、ユーザー環境を管理するためのシステムです。 これにより、</p>
+<ul>
+<li>ユーザープロファイルでソフトウェアを宣言的にインストールする</li>
+<li>ユーザーのホームディレクトリ内のドットファイルを管理する</li>
+</ul>
+<p>ことが可能になります。</p>
+<p><code>apt-get install</code>や、Homebrewを用いた<code>brew install</code>などで順次ソフトウェアをインストールした場合の、 他のマシンで同様のユーザー環境を設定することが難しいという問題を解決してくれます。</p>
+<h1 data-number="3" id="home-mangerのインストール方法"><span class="header-section-number">3</span> Home Mangerのインストール方法</h1>
+<p>NixOSや、Nix-Darwinを利用している方は、こちらでは動作確認ができないため、 <a href="https://github.com/nix-community/home-manager">Home ManagerのGitHub</a>を参考にして、 インストールしてください。</p>
+<p>以下を実行します(2つ目の<code>nix-channel --update</code>は数分掛かるかもしれません):</p>
+<pre><code>$ nix-channel --add https://github.com/nix-community/home-manager/archive/release-21.11.tar.gz home-manager
+$ nix-channel --update
+this derivation will be built:
+  /nix/store/rzr2p7ggvnij2j3j218mwx83c3f371xl-home-manager-21.11.drv
+building &#39;/nix/store/rzr2p7ggvnij2j3j218mwx83c3f371xl-home-manager-21.11.drv&#39;...
+# (数分後)
+unpacking channels...
+$</code></pre>
+<p><code>cat $SHELL</code>で、使用しているシェルを確認します。 私は(現時点では)bashを使っている<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>ので、<code>.bashrc</code>に以下を追記します:</p>
+<div class="sourceCode" id="cb2" data-filepath="~/.bashrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">NIX_PATH</span><span class="op">=</span><span class="va">$HOME</span>/.nix-defexpr/channels:/nix/var/nix/profiles/per-user/root/channels<span class="va">${NIX_PATH</span><span class="op">:+</span>:<span class="va">$NIX_PATH}</span></span></code></pre></div>
+<p><code>.bashrc</code>を再読み込みすることをお忘れなく。</p>
+<pre><code>$ source ~/.bashrc</code></pre>
+<p>次に、<code>nix-shell '&lt;home-manager&gt;' -A install</code>でHome Managerをインストールします:</p>
+<pre><code>$ nix-shell &#39;&lt;home-manager&gt;&#39; -A install
+warning: warning: Nix search path entry &#39;/nix/var/nix/profiles/per-user/root/channels&#39; does not exist, ignoring
+this derivation will be built:
+  /nix/store/32w0dk3fflv3hrpgsrx2923km7vf8gxl-home-manager.drv
+these 65 paths will be fetched (22.26 MiB download, 99.42 MiB unpacked):
+  /nix/store/1kfaw03fx9js1k71a2ch5rhvpa66hr51-boehm-gc-8.0.6
+  /nix/store/1x52sc2zzbsymi3ydk7a7i2c2qg8q6j1-aws-c-http-0.6.10
+# (中略)
+There are 175 unread and relevant news items.
+Read them by running the command &#39;home-manager news&#39;.
+
+
+All done! The home-manager tool should now be installed and you
+can edit
+
+    /home/username/.config/nixpkgs/home.nix
+
+to configure Home Manager. Run &#39;man home-configuration.nix&#39; to
+see all available options.</code></pre>
+<p>インストールが完了し、Home Managerの設定が、 <code>/home/username/.config/nixpkgs/home.nix</code>に記述できると教えてくれています。 説明の通り、<code>home.nix</code>に各種設定を記述していきます。</p>
+<h1 data-number="4" id="homenixを更新する"><span class="header-section-number">4</span> home.nixを更新する</h1>
+<p>Home Managerのインストールに成功すると、<code>home.nix</code>というファイルが<code>~/.config/nixpkgs</code>内に作成されます。</p>
+<details>
+<summary>
+初期状態の<code>home.nix</code>
+</summary>
+<div>
+<div class="sourceCode" id="cb5" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">config,</span> pkgs, ... }:</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Home Manager needs a bit of information about you and the</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># paths it should manage.</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.username</span> = <span class="st">&quot;username&quot;</span><span class="kw">;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.homeDirectory</span> = <span class="st">&quot;/home/username&quot;</span><span class="kw">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># This value determines the Home Manager release that your</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># configuration is compatible with. This helps avoid breakage</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># when a new Home Manager release introduces backwards</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># incompatible changes.</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">#</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># You can update Home Manager without changing this value. See</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the Home Manager release notes for a list of state version</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># changes in each release.</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Let Home Manager install and manage itself.</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs.home-manager.enable</span> = true<span class="kw">;</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+</div>
+</details>
+<h2 data-number="4.1" id="プログラムの追加"><span class="header-section-number">4.1</span> プログラムの追加</h2>
+<p>グローバル環境で設定ファイル等を管理するようなプログラムが<code>programs</code>に用意されています。 利用可能なプログラムは、 <a href="https://github.com/nix-community/home-manager/tree/master/modules/programs">Home ManagerのGitHub内のprograms</a> から確認できます。</p>
+<p>まず、試しに適当にNeoVimをインストールしてみましょう。 現段階では私の環境には入っていません:</p>
+<pre><code>$ which nvim
+$</code></pre>
+<p><code>home.nix</code>の<code>programs.home-manager.enable=true;</code>の下に<code>programs.neovim.enable=true;</code>と記述を追加してみます。</p>
+<details>
+<summary>
+NeoVimを有効にした<code>home.nix</code>
+</summary>
+<div>
+<div class="sourceCode" id="cb7" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">config,</span> pkgs, ... }:</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Home Manager needs a bit of information about you and the</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># paths it should manage.</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.username</span> = <span class="st">&quot;username&quot;</span><span class="kw">;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.homeDirectory</span> = <span class="st">&quot;/home/username&quot;</span><span class="kw">;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># This value determines the Home Manager release that your</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># configuration is compatible with. This helps avoid breakage</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># when a new Home Manager release introduces backwards</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># incompatible changes.</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">#</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># You can update Home Manager without changing this value. See</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the Home Manager release notes for a list of state version</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># changes in each release.</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Let Home Manager install and manage itself.</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs.home-manager.enable</span> = true<span class="kw">;</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs.neovim.enable</span> = true<span class="kw">;</span> <span class="co"># &lt;- この行を追加</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+</div>
+</details>
+<p>設定を反映させるためには、<code>home.nix</code>を保存し、ターミナルで<code>home-manager switch</code>を実行します。</p>
+<pre><code>$ home-manager switch
+these 12 derivations will be built:
+  /nix/store/3qqx1h8wdgzvxsa40m509r98mgz24rc8-neovim-ruby-env.drv
+  /nix/store/5gbdkj17wcb0bkd9dmix6dhhyap46362-python3-3.9.9-env.drv
+(中略)
+There are 175 unread and relevant news items.
+Read them by running the command &#39;home-manager news&#39;.
+$ which nvim
+/home/username/.nix-profile/bin/nvim</code></pre>
+<p>これでNeoVimが使えるようになりました！プラグイン等を設定することもできるのですが、 Home Managerというより、NeoVimの説明になるため、別の記事として書くことにします。</p>
+<h2 data-number="4.2" id="パッケージの追加"><span class="header-section-number">4.2</span> パッケージの追加</h2>
+<p>グローバル環境に入れておきたい<code>nix-env</code>等のコマンドでインストールするようなパッケージは、 <code>home.packages</code>に記述します。複数形であることからも推測できる通り、リストの形式で記述します。</p>
+<p>例として、<code>yarn</code>を追加してみましょう。例のごとく、私の環境にはまだインストールされていません。</p>
+<pre><code>$ which yarn
+$</code></pre>
+<p><code>home.stateVersion = "21.11";</code>の下に、 <code>home.packages = [ pkgs.yarn ];</code>という記述を追加します。</p>
+<details>
+<summary>
+<code>yarn</code>のインストールを追記した<code>home.nix</code>
+</summary>
+<div>
+<div class="sourceCode" id="cb10" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">config,</span> pkgs, ... }:</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Home Manager needs a bit of information about you and the</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># paths it should manage.</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.username</span> = <span class="st">&quot;username&quot;</span><span class="kw">;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.homeDirectory</span> = <span class="st">&quot;/home/username&quot;</span><span class="kw">;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># This value determines the Home Manager release that your</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># configuration is compatible with. This helps avoid breakage</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># when a new Home Manager release introduces backwards</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># incompatible changes.</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">#</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># You can update Home Manager without changing this value. See</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the Home Manager release notes for a list of state version</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># changes in each release.</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.packages</span> = [ pkgs.yarn ]<span class="kw">;</span> <span class="co"># &lt;- この行を追加</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Let Home Manager install and manage itself.</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs.home-manager.enable</span> = true<span class="kw">;</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+</div>
+</details>
+<p>設定を反映させるために、<code>home.nix</code>を保存し、<code>home-manager switch</code>を実行します。</p>
+<pre><code>$ home-manager switch
+(略)
+$ which yarn
+/home/username/.nix-profile/bin/yarn</code></pre>
+<p>グローバル環境には必要ないなと思ったプログラムやパッケージは、 この<code>home.nix</code>から記述を消して再度<code>home-manager switch</code>を実行すれば消すことができます。</p>
+<h2 data-number="4.3" id="ひな形"><span class="header-section-number">4.3</span> ひな形</h2>
+<p>Home Managerをこの記事で入門する人のために、ひな形を置いておきます。 記述としては、大きく<code>home</code>と<code>programs</code>の2つに分かれ、毎回<code>home.</code>や<code>programs.</code>と書くのが面倒なので、 私はまとめて書いています。</p>
+<div class="sourceCode" id="cb12" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">config,</span> pkgs, ... }:</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home</span> = {</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">homeDirectory</span> = builtins.getEnv <span class="st">&quot;HOME&quot;</span><span class="kw">;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="ex">packages</span> = with pkgs<span class="kw">;</span> <span class="bu">[</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>      cachix</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>      niv</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">]</span><span class="kw">;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="ex">stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="ex">username</span> = builtins.getEnv <span class="st">&quot;USER&quot;</span><span class="kw">;</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">};</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs</span> = {</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="ex">direnv</span> = {</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>      <span class="ex">nix-direnv.enable</span> = true<span class="kw">;</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">};</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">git</span> = {</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>      <span class="ex">userEmail</span> = <span class="st">&quot;your.github.account@gmail.com&quot;</span><span class="kw">;</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>      <span class="ex">userName</span> = <span class="st">&quot;yourGitHubUserName&quot;</span><span class="kw">;</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    <span class="ex">home-manager</span> = {</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span></code></pre></div>
+<p><code>home.username</code>と<code>home.homeDirectory</code>は、関数を使って環境変数から読み取るように設定しています。</p>
+<p><code>packages</code>には、後で自分で記述する際に書きやすいよう、あっても邪魔にならないであろう、 <a href="https://www.cachix.org/">Cashix</a>と、<a href="https://github.com/nmattia/niv">niv</a> を適当に置いています。邪魔なら行を削除し、適当なパッケージを追加してください。</p>
+<p><code>programs</code>にも、<a href="https://potassiumiodide.github.io/imamlab.log/2022-01-20-starting-direnv.html">前回の記事</a>で紹介した<code>direnv</code>のインストールと、 <code>git</code>の設定について記述しています。<code>git</code>については、もっと細かく設定することもできるため、 詳細については<a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/git.nix">GitHubのprograms/git.nix</a>を参照してください。</p>
+<h1 data-number="5" id="まとめ"><span class="header-section-number">5</span> まとめ</h1>
+<p>Home Managerを使うことで、ユーザー環境を宣言的に管理することができるようになりました。 例えば<code>home.nix</code>をGitHub等で管理しておけば、新しいPCへの移行はNixとHome Managerをインストールした上で、 <code>home.nix</code>の内容を移して<code>home-manager switch</code>すれば完了します。凄いですね。</p>
+<p>次回以降は、しばらくHome Managerをいじる話をする予定です。</p>
+<p>最近、Zsh × NeoVim × Tmuxの開発環境に入門したため、</p>
+<ul>
+<li>Home ManagerでZshのインストールし、入門する</li>
+<li>Home ManagerでNeoVimをインストールし、入門する</li>
+<li>Home ManagerでTmuxをインストールし、入門する</li>
+</ul>
+<p>という記事を書いてみようかなと考えています。</p>
+<h2 data-number="5.1" id="余談vscodeについて"><span class="header-section-number">5.1</span> 余談(VSCodeについて)</h2>
+<p>MacやLinuxをお使いの方は、VSCodeのインストールのインストールから、 拡張機能等までHome Managerで管理することができます。</p>
+<p>Windowsの場合、私はWSLでVSCodeを使っているのですが、このケースだと、 WindowsにダウンロードしたVSCodeを参照して使う形になります:</p>
+<pre><code>$ which code
+/mnt/c/Users/WindowsUserName/AppData/Local/Programs/Microsoft VS Code/bin/code</code></pre>
+<p>このため、Home Managerに記述してWSLにインストールされるVSCodeとは別物になってしまって、 拡張機能が管理できない問題にぶち当たっています。 Nixの方のVSCodeを使おうとすると、WSL内のGUIを使うことになり、<del>見た目が気持ち悪い</del>VSCodeが起動することになります。 (個人的に調べた限りではWSLでUbuntuではなくNixOSを使っている場合の解決策はありました。) もしWSL × Home Manager × VSCodeをお使いの方で、 この問題の解決策をご存じの方がいらっしゃいましたら、ご連絡頂けると非常に嬉しいです。</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>後にHome Managerを使用してzshに移行します。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+]]></description>
+    <pubDate>Sat, 29 Jan 2022 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/imamlab.log/2022-01-29-starting-home-manager.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+<item>
+    <title>Nix学習備忘録Part 1.5: direnvを導入する</title>
+    <link>https://PotassiumIodide.github.io/imamlab.log/2022-01-20-starting-direnv.html</link>
+    <description><![CDATA[<nav role="navigation" class="p-toc">
+  <h2 class="p-toc__header">
+    目次
+  </h2>
+  <div class="p-toc__contents">
+    <ul>
+    <li><a href="#はじめに"><span class="toc-section-number">1</span> はじめに</a></li>
+    <li><a href="#direnvとは"><span class="toc-section-number">2</span> direnvとは</a></li>
+    <li><a href="#direnvのインストール方法"><span class="toc-section-number">3</span> direnvのインストール方法</a></li>
+    <li><a href="#direnvの使用方法"><span class="toc-section-number">4</span> direnvの使用方法</a>
+    <ul>
+    <li><a href="#状況設定"><span class="toc-section-number">4.1</span> 状況設定</a></li>
+    <li><a href="#初期設定"><span class="toc-section-number">4.2</span> 初期設定</a></li>
+    <li><a href="#動作確認"><span class="toc-section-number">4.3</span> 動作確認</a></li>
+    <li><a href="#余談-pythonとvirtualenvの組み合わせでの使用例"><span class="toc-section-number">4.4</span> 余談: Pythonとvirtualenvの組み合わせでの使用例</a></li>
+    </ul></li>
+    <li><a href="#nixでdirenvを使用する"><span class="toc-section-number">5</span> Nixでdirenvを使用する</a></li>
+    <li><a href="#まとめ"><span class="toc-section-number">6</span> まとめ</a></li>
+    </ul>
+  </div>
+</nav>
+<h1 data-number="1" id="はじめに"><span class="header-section-number">1</span> はじめに</h1>
+<p>direnvは、仮想環境使ってる人など、 導入するとかなり作業が快適になります。</p>
+<p>Nix学習備忘録に入っていますが、 direnv自体はNixとは関係無く使えるので、 Nix興味無いって方もご一読頂けると幸いです。</p>
+<!--more-->
+<p>Nixでの利用方法は(大した分量ではありませんが)、 終盤に持ってきています。 Nixでの利用例は<a href="https://potassiumiodide.github.io/imamlab.log/2022-01-19-starting-nix.html">前回の記事</a> で作った<code>~/work/png2pdf</code>プロジェクトで動作確認をしますが、 読んでいなくても、それまでの内容で何となく何ができているのかはお分かり頂けるかと思います。</p>
+<p>また、direnvの使用をオススメはしますが、 今後Nixを使う上で必須というわけではないので、 必要無いと思った人は導入しなくても構いません。</p>
+<h1 data-number="2" id="direnvとは"><span class="header-section-number">2</span> direnvとは</h1>
+<p>CUI上で環境変数を切り替えることができるツールで、 ディレクトリごとに環境を作った際、そのディレクトリに <strong>入ったタイミングで環境変数を追加</strong>、 <strong>出たタイミングで環境変数を削除</strong>することができます。</p>
+<h1 data-number="3" id="direnvのインストール方法"><span class="header-section-number">3</span> direnvのインストール方法</h1>
+<p>今回も何番煎じになるのかわかりませんが、 インストール方法を記載します。</p>
+<p>他のサイトでは、エディタの指定をして、 <code>direnv edit</code>というコマンドで設定を書くようにしていますが、 直接編集することもできるので、私はエディタの設定はしていません<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</p>
+<dl id="nix-install-guide" class="p-accordion" role="tablist">
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="nix-install-guide" type="button">
+<span class="c-font-icon c-font-icon--apple with-text"></span> Mac
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>brewでインストール:</p>
+<pre><code>brew install direnv</code></pre>
+<p>シェルにフックされるように、bashの場合は<code>~/.bashrc</code>に</p>
+<div class="sourceCode" id="cb2" data-filepath="~/.bashrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">direnv</span> hook bash<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+<p>zshの場合は<code>~/.zshrc</code>に</p>
+<div class="sourceCode" id="cb3" data-filepath="~/.zshrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">direnv</span> hook zsh<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+と記述する。
+</dd>
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="nix-install-guide" type="button">
+<span class="c-font-icon c-font-icon--ubuntu with-text"></span> Ubuntu / <span class="c-font-icon c-font-icon--windows with-text"></span> Windows(WSL, Ubuntu)
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>Ubuntu以外のLinuxについては(私が環境を再現できないため)説明を省きます。 以下のコマンドを実行する:</p>
+<pre><code>$ sudo apt install -y direnv</code></pre>
+<p>シェルにフックされるように、bashの場合は<code>~/.bashrc</code>に</p>
+<div class="sourceCode" id="cb5" data-filepath="~/.bashrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">direnv</span> hook bash<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+<p>zshの場合は<code>~/.zshrc</code>に</p>
+<div class="sourceCode" id="cb6" data-filepath="~/.zshrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">direnv</span> hook zsh<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+と記述する。
+</dd>
+</dl>
+<h1 data-number="4" id="direnvの使用方法"><span class="header-section-number">4</span> direnvの使用方法</h1>
+<h2 data-number="4.1" id="状況設定"><span class="header-section-number">4.1</span> 状況設定</h2>
+<p>まず、適当な作業用ディレクトリを作ります。</p>
+<pre><code>$ cd ~
+$ mkdir direnv_example &amp;&amp; cd $_</code></pre>
+<p>環境変数が削除されるのも確認したいので、 グローバルに環境変数<code>HOGE=hoge</code>を追記します。</p>
+<p>※ 後で削除する設定なので、書いたり消したりするのが面倒な方は、 「<code>HOGE=hoge</code>って環境変数を作って、 後でこれが自動で削除されるのを確認する」 程度を頭に入れて、適当に読み飛ばしてください。</p>
+<p>ここではbashで説明します。zshの場合はbashをすべてzshで読み替えて読んでください。</p>
+<pre><code># グローバル環境変数HOGEを.bashrcに記述
+$ echo &quot;export HOGE=hoge&quot; &gt;&gt; ~/.bashrc
+# .bashrcに記述されたことを確認
+$ cat ~/.bashrc | grep &quot;HOGE&quot;
+expoert HOGE=hoge
+# .bashrcを読み込んでいないので、まだ設定はされていない
+$ echo $HOGE
+# .bashrcを再読み込み
+$ source ~/.bashrc
+# 環境変数HOGEが使えるようになったことを確認
+$ echo $HOGE
+hoge</code></pre>
+<h2 data-number="4.2" id="初期設定"><span class="header-section-number">4.2</span> 初期設定</h2>
+<p>direnvの使用方法は至って簡単です。 環境変数を記述した<code>.envrc</code>というファイルを、 プロジェクトのルート置きます。 追加したい環境変数を<code>.bashrc</code>や<code>.zshrc</code>に記述するときと同様、 <code>export</code>で記述し、削除したい環境変数を<code>unset</code>で記述します。</p>
+<div class="sourceCode" id="cb9" data-filepath="~/direnv_example/.envrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">FUGA</span><span class="op">=</span>fuga</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="bu">unset</span> <span class="va">HOGE</span></span></code></pre></div>
+<p>保存すると、ターミナルに以下のような出力がされます:</p>
+<pre><code>direnv: error /home/username/direnv_example/.envrc is blocked. Run `direnv allow` to approve its content</code></pre>
+<p>direnvが<code>.envrc</code>を評価しようとしたら、 ブロックされたから、<code>direnv allow</code>で許可してと言っています。</p>
+<p>許可する前に、今の環境変数を確認しましょう。 <code>HOGE</code>はグローバル環境変数として記述しており、 <code>FUGA</code>は評価してない<code>.envrc</code>内に入っているので、 それぞれ評価すると次のようになります:</p>
+<pre><code># 現在direnv_exampleにいることを確認
+$ pwd
+/home/username/direnv_example
+# グローバル環境変数なので出力される
+$ echo $HOGE
+hoge
+# まだ評価してない.envrcに記述しているため何も出力されない
+$ echo $FUGA
+
+$</code></pre>
+<p>それでは、direnvに<code>.envrc</code>の評価を許可しましょう。</p>
+<pre><code>$ direnv allow
+direnv: loading ~/direnv_example/.envrc
+direnv: export +FUGA -HOGE</code></pre>
+<p>既に<code>export +FUGA -HOGE</code>と書かれています。 実際にグローバルで定義した環境変数<code>HOGE</code>が削除され、 <code>.envrc</code>で追加させた<code>FUGA</code>が追加されていることを確認しましょう。</p>
+<pre><code># グローバルで定義したHOGEは削除されたので、何も出力されない
+$ echo $HOGE
+
+# .envrcで追加したので、FUGAは出力される
+$ echo $FUGA
+fuga</code></pre>
+<h2 data-number="4.3" id="動作確認"><span class="header-section-number">4.3</span> 動作確認</h2>
+<p>direnvはディレクトリごとに<strong>自動で</strong>環境を有効/無効にできます。 <code>direnv_example</code>の<code>.envrc</code>に記述した内容は、 ディレクトリに<strong>出入りするだけ</strong>で有効/無効にできます。</p>
+<p>実際見てみましょう。</p>
+<pre><code># 現在の位置を確認
+$ pwd
+/home/username/direnv_example
+$ echo $HOGE
+
+$ echo $FUGA
+fuga
+# 親ディレクトリに移動
+$ cd ..
+direnv: unloading
+$ echo $HOGE
+hoge
+$ echo $FUGA
+
+# 再度direnv_exampleへ移動
+$ cd direnv_example
+direnv: loading ~/direnv_example/.envrc
+direnv: export +FUGA -HOGE
+$ echo $HOGE
+
+$ echo $FUGA
+fuga</code></pre>
+<p>ちゃんと、<code>direnv_example</code>に入ったら<code>.envrc</code>が評価され、 <code>direnv_example</code>から抜けたら元の環境に戻っていることがわかります。</p>
+<p>direnvの動作確認自体はこれで終わりなので、 <code>.bashrc</code>や<code>.zshrc</code>に記述した<code>export HOGE=hoge</code>は 消しておいてください。</p>
+<h2 data-number="4.4" id="余談-pythonとvirtualenvの組み合わせでの使用例"><span class="header-section-number">4.4</span> 余談: Pythonとvirtualenvの組み合わせでの使用例</h2>
+<p>Pythonユーザー以外には関係無いのと、 virtualenv使いこなしてる人には細かい説明は要らないと思うので簡単な説明に留めますが、 <code>.envrc</code>に以下のように記述しておけば、 仮想環境がディレクトリ移動で勝手に切り替わってくれるので、 <code>deactivate</code>し忘れる心配が無くなります。</p>
+<p>※ 仮想環境のディレクトリ名は<code>.venv</code>としています。</p>
+<div class="sourceCode" id="cb15" data-filepath=".envrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span></code></pre></div>
+<h1 data-number="5" id="nixでdirenvを使用する"><span class="header-section-number">5</span> Nixでdirenvを使用する</h1>
+<p>本題です。本題なんですが、話はすぐ終わります。</p>
+<p><code>.envrc</code>に記述する内容は次の一行だけです:</p>
+<div class="sourceCode" id="cb16" data-filepath=".envrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">use</span> nix</span></code></pre></div>
+<p>終わりです。お疲れ様でした。</p>
+<p>。。。</p>
+<p>。。。一応、前回作った<code>~/work/png2pdf</code>に、 上の内容の<code>.envrc</code>を記述してみます。 前節の例と同様、許可を求められるので、<code>direnv allow</code>で許可します。</p>
+<pre><code>$ pwd
+/home/username/work/png2pdf
+$ echo &quot;use nix&quot; &gt; .envrc
+direnv: error /home/username/work/png2pdf/.envrc is blocked. Run `direnv allow` to approve its content
+$ direnv allow
+direnv: loading ~/work/png2pdf/.envrc
+direnv: using nix
+direnv: using cached derivation
+direnv: eval /username/work/png2pdf/.direnv/cache-pre346058.bc59ba15b64
+direnv: export +AR +AS +CC +CONFIG_SHELL +CXX +DETERMINISTIC_BUILD+HOST_PATH +IN_NIX_SHELL +LD +NIX_BINTOOLS +NIX_BINTOOLS_WRAPPER_TARGET_HOST_x86_64_unknown_linux_gnu +NIX_BUILD_CORES +NIX_BUILD_TOP +NIX_CC +NIX_CC_WRAPPER_TARGET_HOST_x86_64_unknown_linux_gnu +NIX_CFLAGS_COMPILE +NIX_ENFORCE_NO_NATIVE +NIX_HARDENING_ENABLE +NIX_INDENT_MAKE +NIX_LDFLAGS +NIX_STORE +NM +OBJCOPY +OBJDUMP +PYTHONHASHSEED +PYTHONNOUSERSITE +PYTHONPATH +RANLIB +READELF +SIZE +SOURCE_DATE_EPOCH +STRINGS +STRIP +TEMP +TEMPDIR +TMP +XDG_DATA_DIRS +_PYTHON_HOST_PLATFORM +_PYTHON_SYSCONFIGDATA_NAME +__ETC_PROFILE_SOURCED +buildInputs +buildPhase +builder +configureFlags +depsBuildBuild +depsBuildBuildPropagated +depsBuildTarget +depsBuildTargetPropagated +depsHostHost +depsHostHostPropagated +depsTargetTarget +depsTargetTargetPropagated +doCheck +doInstallCheck +name +nativeBuildInputs +out +outputs +patches +phases +propagatedBuildInputs +propagatedNativeBuildInputs +shell +shellHook +stdenv +strictDeps +system ~PATH
+$</code></pre>
+<p>大量の環境変数が読み込まれていることがわかります。 Pythonと<code>img2pdf</code>が使えるかどうか確認してみましょう。</p>
+<pre><code>$ pwd
+/home/username/work/png2pdf
+$ python
+Python 3.9.9 (main, Nov 15 2021, 18:05:17)
+[GCC 10.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; import img2pdf
+&gt;&gt;&gt; img2pdf.__version__
+&#39;0.4.3&#39;
+&gt;&gt;&gt;</code></pre>
+<p>無事使えています。 ディレクトリを出て、pythonが使えなくなることを確認し、 再度入り直して、また使えるようになることを確認しましょう。</p>
+<pre><code>&gt;&gt;&gt; exit()
+$ cd ..
+direnv unloading
+$ python
+python: command not found
+$ cd png2pdf
+direnv: loading ~/work/png2pdf/.envrc
+direnv: using nix
+(以下略)
+$ python
+Python 3.9.9 (main, Nov 15 2021, 18:05:17)
+[GCC 10.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; import img2pdf
+&gt;&gt;&gt; img2pdf.__version__
+&#39;0.4.3&#39;
+&gt;&gt;&gt;</code></pre>
+<p>これで毎度毎度<code>nix-shell</code>を実行しなくても、 ディレクトリに入るだけで<code>img2pdf</code>が使えるPythonの環境に入ることができ、 ディレクトリを抜けるだけでクリーンな環境に戻ることができるようになりました。</p>
+<h1 data-number="6" id="まとめ"><span class="header-section-number">6</span> まとめ</h1>
+<p>direnvを使うことで、構築した環境に自動で出入りすることができるようになりました。</p>
+<p>次回の内容は未定ですが、</p>
+<ul>
+<li>PoetryとNixを用いてより優れた環境を構築する</li>
+<li>Nixで再構成が容易なユーザー環境を構築する</li>
+</ul>
+<p>のいずれかの方針で進めて行こうかと思います。</p>
+<p>もしかすると、行ったり来たりするかもしれませんが、 備忘録なので悪しからず。。。</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p> もしかしたら、Nix以外でdirenvを利用する場合に、 何か不都合が生じるのかもしれません。気になる方は、 他の記事同様、<code>~/.bashrc</code>や<code>~/.zshrc</code>に <code>export EDITOR=&lt;エディタ名&gt;</code>と記述してください。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+]]></description>
+    <pubDate>Thu, 20 Jan 2022 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/imamlab.log/2022-01-20-starting-direnv.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+<item>
+    <title>Nix学習備忘録Part 1: Nixに入門する</title>
+    <link>https://PotassiumIodide.github.io/imamlab.log/2022-01-19-starting-nix.html</link>
+    <description><![CDATA[<nav role="navigation" class="p-toc">
+  <h2 class="p-toc__header">
+    目次
+  </h2>
+  <div class="p-toc__contents">
+    <ul>
+    <li><a href="#はじめに"><span class="toc-section-number">1</span> はじめに</a></li>
+    <li><a href="#nixとは"><span class="toc-section-number">2</span> Nixとは</a></li>
+    <li><a href="#nixのインストール方法"><span class="toc-section-number">3</span> Nixのインストール方法</a></li>
+    <li><a href="#nixでpythonの環境を構築する"><span class="toc-section-number">4</span> NixでPythonの環境を構築する</a>
+    <ul>
+    <li><a href="#何ができるようになるか"><span class="toc-section-number">4.1</span> 何ができるようになるか</a></li>
+    <li><a href="#今回作るもの"><span class="toc-section-number">4.2</span> 今回作るもの</a></li>
+    <li><a href="#pythonを使えるようにする"><span class="toc-section-number">4.3</span> Pythonを使えるようにする</a></li>
+    <li><a href="#pythonパッケージを利用可能にする"><span class="toc-section-number">4.4</span> Pythonパッケージを利用可能にする</a></li>
+    <li><a href="#プログラムを書く詳細は省略"><span class="toc-section-number">4.5</span> プログラムを書く(詳細は省略)</a></li>
+    </ul></li>
+    <li><a href="#まとめ"><span class="toc-section-number">5</span> まとめ</a></li>
+    </ul>
+  </div>
+</nav>
+<h1 data-number="1" id="はじめに"><span class="header-section-number">1</span> はじめに</h1>
+<p>技術記事をまともに書くのは初めてなので、 記述が冗長(既にこの章が冗長かもしれない)であると感じることもあるかもしれませんが、 温かい目で読んで頂ければ幸いです。 また、読者にNixの入門をさせることが目的ではなく、 あくまで個人的にNixを勉強していて、 そろそろどこかにまとめないと忘れそうだと感じたので、 本シリーズはタイトル通り``備忘録"という位置付けです。 もし、情報に誤り等御座いましたら、 Twitter、GitHub、またはEmailがフッターにありますので、 そちらからご報告頂ければ有難いです。</p>
+<!--more-->
+<h1 data-number="2" id="nixとは"><span class="header-section-number">2</span> Nixとは</h1>
+<p>``Nix"は<strong>純粋関数型パッケージマネージャ</strong>の1つです。 パッケージを純粋関数型言語の<strong>値</strong>として扱います。 つまり、各パッケージは副作用を持たない関数によって構築され、 ビルド後に変更されることはありません。</p>
+<p>…と、あまり抽象的な話をし過ぎてもHaskell等の関数型プログラミング言語を使ったことがある人であれば、 何となくは、こういうことかと理解できるかもしれませんが、 そうでない人にとっては何を言ってるかさっぱりだと思うので、 (というより、私自身も完全には理解できていないので、) 実際にPythonを例に具体的に環境構築を行なってみます。</p>
+<p>Nixは学習コストが高いことでも有名なので、 全部理解して発信するより、機能に少しずつ触れながら、 こういうことできました～って発信する方が、 この記事を読む方も置いてけぼりにならなくて良いかなという 淡い期待と甘えで筆を進めています。</p>
+<h1 data-number="3" id="nixのインストール方法"><span class="header-section-number">3</span> Nixのインストール方法</h1>
+<p>日本語でも既に記事があり、何番煎じかわかりませんが、 一応載せておきます。</p>
+<p>※以下のインストール方法は2022/01/19現在のものです。</p>
+<dl id="nix-install-guide" class="p-accordion" role="tablist">
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="nix-install-guide" type="button">
+<span class="c-font-icon c-font-icon--apple with-text"></span> Mac
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>以下のコマンド実行する:</p>
+<pre><code>sh &lt;(curl -L https://nixos.org/nix/install) --darwin-use-unencrypted-nix-store-volume --daemon</code></pre>
+<p>これで上手く行かない場合は、以下を実行する:</p>
+<pre><code>sh &lt;(curl https://abathur-nix-install-tests.cachix.org/serve/yihf8zbs0jwph2rs9qfh80dnilijxdi2/install) --tarball-url-prefix https://abathur-nix-install-tests.cachix.org/serve</code></pre>
+</dd>
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="nix-install-guide" type="button">
+<span class="c-font-icon c-font-icon--linux with-text"></span> Linux
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>依存関係のインストール</p>
+<pre><code>sudo apt update
+sudo apt upgrade
+sudo apt install git curl make -y</code></pre>
+<p>Nixのインストール:</p>
+<pre><code>curl -L https://nixos.org/nix/install | sh</code></pre>
+<p><code>.bashrc</code>に以下を記述して、<code>.profile</code>ファイルを読み込むようにする:</p>
+<pre><code>. ~/.nix-profile/etc/profile.d/nix.sh</code></pre>
+<p>そのほかのインストール方法は<a href="https://nixos.org/nix/download.html">公式ドキュメント</a>を参照。</p>
+</dd>
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="nix-install-guide" type="button">
+<span class="c-font-icon c-font-icon--windows with-text"></span> Windows(WSL)
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>WSLを利用する。WSLの使い方についての説明は本筋と離れるため、省略する。 依存関係のインストール:</p>
+<pre><code>sudo apt uodate
+sudo apt upgrade
+sudo apt install git curl make xdg-utils -y</code></pre>
+<p><code>.bashrc</code>に以下を記述してパスを通し、<code>.profile</code>を読み込むようにする:</p>
+<pre><code>PATH=$(/usr/bin/printenv PATH | /usr/bin/perl -ne &#39;print join(&quot;:&quot;, grep { !/\/mnt\/[a-z]/ } split(/:/));&#39;)
+. ~/.nix-profile/etc/profile.d/nix.sh</code></pre>
+<p>Nix用のフォルダを作成:</p>
+<pre><code>sudo mkdir -p /etc/nix</code></pre>
+<p>WindowsでNixを利用するためには、<code>/etc/nix/nix.conf</code>を作成し、ファイル内に以下を記述:</p>
+<pre><code>sandbox = false
+use-sqlite-wal = false</code></pre>
+<p>Nixのインストール:</p>
+<pre><code>curl -L https://nixos.org/nix/install | sh</code></pre>
+</dd>
+</dl>
+<h1 data-number="4" id="nixでpythonの環境を構築する"><span class="header-section-number">4</span> NixでPythonの環境を構築する</h1>
+<h2 data-number="4.1" id="何ができるようになるか"><span class="header-section-number">4.1</span> 何ができるようになるか</h2>
+<p>今まで私はpyenvでPythonのバージョンを管理し、 virtualenvを使って各種パッケージの管理を行なっていました。</p>
+<p>Nixを用いると、pyenvもvirtualenvも使わず、 Pythonのバージョン、パッケージをまとめて管理できます<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。 また、この環境はプロジェクトごとに作ることができ、 グローバル環境を汚すことなく、 クリーンにインストールすることができます。</p>
+<h2 data-number="4.2" id="今回作るもの"><span class="header-section-number">4.2</span> 今回作るもの</h2>
+<p>何を作るのかはあまり重要じゃないのですが、 <strong>PNG形式の画像ファイルをPDF形式に変換</strong>するプログラムを作成します。 理由については、本筋と関係ないので、読みたい方だけ読んでください。</p>
+<details>
+<summary>
+なぜPDF変換のプロジェクト？
+</summary>
+<div>
+<p>論文を書いたりするときに、LaTeXを使うのですが、 pngファイルの出力が上手く行かないことがあり、 eps形式のファイルが推奨はされているのですが、 pdfで十分出力される上、使い勝手も良いので、 変換する作業が必要になることがちょくちょくあります。</p>
+論文に使うような画像の変換に、 オンラインの変換サービスを利用するのは流石に気が引けるので、 Pythonで一気に変換できた方が良いなと考えた次第です。
+</div>
+</details>
+<h2 data-number="4.3" id="pythonを使えるようにする"><span class="header-section-number">4.3</span> Pythonを使えるようにする</h2>
+<p>まず、現在の状況を確認します。 <code>~/work</code>下に<code>png2pdf</code>ディレクトリを作成します。</p>
+<blockquote>
+<p>ホームディレクトリ<code>~</code>は<code>/home/username</code>にあるとします。</p>
+</blockquote>
+<pre><code>$ cd ~
+$ mkdir work &amp;&amp; cd $_
+$ mkdir png2pdf &amp;&amp; cd $_
+$ pwd
+/home/usename/work/png2pdf
+$ ls
+$</code></pre>
+<p>既存のPythonの環境はすべて消し去ったので、 今は<code>python</code>コマンドは使えない状況です:</p>
+<pre><code>$ python
+python: command not found</code></pre>
+<p>ここで、お好みのエディタで現在のディレクトリ(<code>~/work/png2pdf</code>)に、 以下のような<code>shell.nix</code>という名前のファイルを作成します。</p>
+<div class="sourceCode" id="cb13" data-filepath="shell.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">pkgs</span> <span class="pp">?</span> import <span class="op">&lt;</span>nixpkgs<span class="op">&gt;</span> {} , ...}:</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="ex">with</span> pkgs<span class="kw">;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ex">mkShell</span> {</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="ex">buildInputs</span> = [ python3 ]<span class="kw">;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+<p>以下のような状態であればOKです。</p>
+<pre><code>$ pwd
+/home/username/work/png2pdf
+$ ls
+shell.nix
+$ cat shell.nix
+{ pkgs ? import &lt;nixpkgs&gt; {} , ...}:
+
+with pkgs;
+mkShell {
+  buildInputs = [ python3 ];
+}</code></pre>
+<p>ここで、<code>nix-shell</code>というコマンドを入力すると、 Pythonがインストールされたシェルが起動します。</p>
+<pre><code>$ nix-shell
+# 初回は若干時間が掛かるかもしれません。
+[nix-shell:~/work/png2pdf]$ python
+Python 3.9.9 (main, Nov 15 2021, 18:05:17)
+[GCC 10.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; 1 + 1
+2
+&gt;&gt;&gt; exit()
+[nix-shell:~/work/png2pdf]$ </code></pre>
+<p><code>~/work/png2pdf</code>下でPythonが使えるようになりました！</p>
+<p>すでにグローバルにPythonが入っていた人のために、 どのPythonが使われているのかも確認してみましょう。</p>
+<pre><code>[nix-shell:~/work/png2pdf]$ which python
+/nix/store/dn4fwp0yx6nsa85cr20cwvdmg64xwmcy-python3-3.9.9/bin/python</code></pre>
+<p>頭に<code>/nix/store/</code>と付いています。 各種パッケージ等がインストールされる先はこのNix Storeと呼ばれる場所で、自分のPCで利用可能なパッケージがすべて含まれています。</p>
+<p>また、<code>python3-3.9.9</code>というバージョンの前にハッシュのようなものが付いています。 このおかげで、バージョンは同じだけど、依存関係は違うようなPythonも<strong>衝突</strong>(conflict)しないことが保証されています。</p>
+<p>このシェル環境から出るには<code>exit</code>とタイプします。 この環境から抜けると、最初の状態と同様、<code>python</code>は使えなくなります。 グローバルの環境は一切汚れていないことがわかります。</p>
+<pre><code>[nix-shell:~/work/png2pdf]$ exit
+$ python
+python: command not found</code></pre>
+<p>今回作るPNGをPDFに変換するプログラムは<code>img2pdf</code>というパッケージを必要とします。 しかし、現在そのようなパッケージはインストールしていないため、使うことができません。 実際に<code>nix-shell</code>コマンドで再度シェルに入ってみます。 2回目なので、すぐにシェルが起動します。</p>
+<pre><code>$ nix-shell
+[nix-shell:~/work/png2pdf]$ python
+Python 3.9.9 (main, Nov 15 2021, 18:05:17)
+[GCC 10.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; import img2pdf
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+ModuleNotFoundError: No module named &#39;img2pdf&#39;
+&gt;&gt;&gt; exit()
+[nix-shell:~/work/png2pdf]$ exit
+$</code></pre>
+<h2 data-number="4.4" id="pythonパッケージを利用可能にする"><span class="header-section-number">4.4</span> Pythonパッケージを利用可能にする</h2>
+<p><code>img2pdf</code>を利用可能にするためには、<code>shell.nix</code>の<code>buildInputs</code>に <code>python3Packages.img2pdf</code>という記述を追加します:</p>
+<div class="sourceCode" id="cb19" data-filepath="shell.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">pkgs</span> <span class="pp">?</span> import <span class="op">&lt;</span>nixpkgs<span class="op">&gt;</span> {} , ...}:</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="ex">with</span> pkgs<span class="kw">;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="ex">mkShell</span> {</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="ex">buildInputs</span> = [</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="ex">python3</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">python3Packages.img2pdf</span> <span class="co"># &lt;- この行を追加</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+<p>再度<code>nix-shell</code>コマンドにより、再度シェルを起動してみます。</p>
+<p>これで<code>img2pdf</code>が使えるようになってるはず…</p>
+<pre><code>$ nix-shell
+[nix-shell:~/work/png2pdf]$ python
+(省略)
+&gt;&gt;&gt; import img2pdf
+Traceback (most recent call last):
+(中略)
+ModuleNotFoundError: No module named &#39;PIL&#39;
+&gt;&gt;&gt;</code></pre>
+<p><code>PIL</code>という名前のモジュールが見つかりませんってエラーが出ました。 <code>img2pdf</code>を使用するには、<code>pillow</code>ってパッケージをインストールする必要があるみたいです。</p>
+<details>
+<summary>
+この問題どうにかならないの？(Pythonユーザー向け)
+</summary>
+<div>
+実はこの辺の依存関係もまとめて管理できるPythonのパッケージマネージャにPoetryというものが存在して、 これとNixのより進んだ技術を組み合わせるとこの辺りの依存関係問題も解決できます。
+</div>
+</details>
+<p>ということで、前置きが長くなりましたが、依存関係の<code>pillow</code>を<code>buildInput</code>に加えます。</p>
+<pre><code>{ pkgs ? import &lt;nixpkgs&gt; {} , ...}:
+
+with pkgs;
+mkShell {
+  buildInputs = [
+    python3
+    python3Packages.pillow # &lt;- この行を追加
+    python3Packages.img2pdf
+  ];
+}</code></pre>
+<p>再度<code>nix-shell</code>を実行し、<code>img2pdf</code>が使えるか確認してみます。</p>
+<pre><code>$ nix-shell
+[nix-shell:~/work/png2pdf]$ python
+Python 3.9.9 (main, Nov 15 2021, 18:05:17)
+[GCC 10.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; import img2pdf
+&gt;&gt;&gt; img2pdf.__version__
+&#39;0.4.3&#39;
+&gt;&gt;&gt; exit()
+[nix-shell:~/work/png2pdf]$ </code></pre>
+<p>無事<code>img2pdf</code>が使えるようになりました！</p>
+<h2 data-number="4.5" id="プログラムを書く詳細は省略"><span class="header-section-number">4.5</span> プログラムを書く(詳細は省略)</h2>
+<p>Pythonのプログラムは主目的から外れるので、 プログラムとファイル構造だけ載せ、プログラムに関する詳細な説明は省略します。</p>
+<blockquote>
+<p>メインはNixの方なので、Pythonのこの書き方おかしいだろとか、 ファイル構造どうにかならんのかとか、 そういうツッコミは心の中でお願いします。笑</p>
+</blockquote>
+<pre><code>[nix-shell:~/work/png2pdf]$ mkdir png pdf
+[nix-shell:~/work/png2pdf]$ ls
+pdf  png  shell.nix</code></pre>
+<p>この<code>png</code>フォルダにPDFに変換したいPNG形式の画像ファイルを入れます。 <code>pdf</code>フォルダは空のままです。</p>
+<pre><code>[nix-shell:~/work/png2pdf]$ ls png
+fuga.png  hoge.png
+[nix-shell:~/work/png2pdf]$ ls pdf
+[nix-shell:~/work/png2pdf]$ </code></pre>
+<p>お好みのエディタで、<code>~/work/img2pdf/</code>内に、 以下のような<code>main.py</code>ファイルを作成します:</p>
+<div class="sourceCode" id="cb25" data-filepath="main.py"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> img2pdf</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PIL <span class="im">import</span> Image </span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&#39;__main__&#39;</span>:</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    cwd <span class="op">=</span> os.getcwd()</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    pdf_dir_path <span class="op">=</span> <span class="ss">f&quot;</span><span class="sc">{</span>cwd<span class="sc">}</span><span class="ss">/pdf/&quot;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    png_dir_path <span class="op">=</span> <span class="ss">f&quot;</span><span class="sc">{</span>cwd<span class="sc">}</span><span class="ss">/png/&quot;</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> png_filename <span class="kw">in</span> os.listdir(png_dir_path):</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>        pdf_filename <span class="op">=</span> png_filename.replace(<span class="st">&#39;.png&#39;</span>, <span class="st">&#39;.pdf&#39;</span>)</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># 既に変換済みファイルがあったらスキップ</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> pdf_filename <span class="kw">in</span> os.listdir(pdf_dir_path):</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> <span class="bu">open</span>(pdf_dir_path <span class="op">+</span> pdf_filename, <span class="st">&quot;wb&quot;</span>) <span class="im">as</span> f:</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>            f.write(img2pdf.convert(</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>                Image.<span class="bu">open</span>(png_dir_path <span class="op">+</span> png_filename).filename</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>            ))</span></code></pre></div>
+<p>ファイル構造が以下のようになっていればOKです。</p>
+<pre><code>[nix-shell:~/work/png2pdf]$ tree .
+.
+├── main.py
+├── pdf
+├── png
+│   ├── fuga.png
+│   └── hoge.png
+└── shell.nix
+
+2 directories, 4 files</code></pre>
+<p>では、<code>main.py</code>を実行してみます:</p>
+<pre><code>[nix-shell:~/work/png2pdf]$ python main.py
+Image contains an alpha channel which will be stored as a separate soft mask (/SMask) image in PDF.
+Image contains an alpha channel which will be stored as a separate soft mask (/SMask) image in PDF.
+
+[nix-shell:~/work/png2pdf]$ tree .
+.
+├── main.py
+├── pdf
+│   ├── fuga.pdf
+│   └── hoge.pdf
+├── png
+│   ├── fuga.png
+│   └── hoge.png
+└── shell.nix
+
+2 directories, 6 files
+[nix-shell:~/work/png2pdf]$ exit
+$ </code></pre>
+<p>新しく<code>hoge.pdf</code>と<code>fuga.pdf</code>が<code>pdf</code>ディレクトリの中に追加されました。</p>
+<h1 data-number="5" id="まとめ"><span class="header-section-number">5</span> まとめ</h1>
+<p>Nixを用いてPythonと、Pythonのパッケージを利用可能にする方法を紹介しました。</p>
+<p>次回は、毎回<code>nix-shell</code>で環境に入って、 <code>exit</code>で出るの面倒臭くない？って問題を解決します。</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p> 本当にNixだけで良いかというと、実はそうでもなく、 PoetryというPythonのパッケージマネージャ―を使った方が良くなったりもするのですが、 小規模のプロジェクトではそれほど問題にはならないので、 今後、必要に応じて記事を書きます。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+]]></description>
+    <pubDate>Wed, 19 Jan 2022 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/imamlab.log/2022-01-19-starting-nix.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+<item>
+    <title>Test diary No2!</title>
+    <link>https://PotassiumIodide.github.io/imamlab.diary/2021-12-26-test2%20copy.html</link>
+    <description><![CDATA[<h1 id="ページネーションを付けた">ページネーションを付けた</h1>
+<p>Hakyllでページネーションを付けたので、実際に動くかチェックする。</p>
+<!--more-->
+<h1 id="これは1つ後の記事である">これは1つ後の記事である</h1>]]></description>
+    <pubDate>Sun, 26 Dec 2021 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/imamlab.diary/2021-12-26-test2%20copy.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+<item>
+    <title>Test diary!</title>
+    <link>https://PotassiumIodide.github.io/imamlab.diary/2021-12-25-test-diary.html</link>
+    <description><![CDATA[<p>これはテスト投稿です。<span class="emoji" data-emoji="sushi">🍣</span></p>
+<p>Haskellコードの例:</p>
+<!--more-->
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toSlug ::</span> <span class="dt">T.Text</span> <span class="ot">-&gt;</span> <span class="dt">T.Text</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>toSlug <span class="ot">=</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  T.intercalate (T.singleton <span class="ch">&#39;-&#39;</span>) <span class="op">.</span> T.words <span class="op">.</span> T.toLower <span class="op">.</span> clean</span></code></pre></div>
+<p>数式<span class="math inline">\(f(x) = x^{2}\)</span></p>
+<p><span class="math display">\[
+  \left( \int_0^\infty \frac{\sin x}{\sqrt{x}} dx \right)^2 =
+  \sum_{k=0}^\infty \frac{(2k)!}{2^{2k}(k!)^2} \frac{1}{2k+1} =
+  \prod_{k=1}^\infty \frac{4k^2}{4k^2 - 1} = \frac{\pi}{2}
+\]</span></p>]]></description>
+    <pubDate>Sat, 25 Dec 2021 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/imamlab.diary/2021-12-25-test-diary.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+<item>
+    <title>Test diary No0!</title>
+    <link>https://PotassiumIodide.github.io/imamlab.diary/2021-12-24-test0.html</link>
+    <description><![CDATA[<h1 id="ページネーションを付けた">ページネーションを付けた</h1>
+<p>Hakyllでページネーションを付けたので、実際に動くかチェックする。</p>
+<!--more-->
+<h1 id="これは1つ前の記事である">これは1つ前の記事である</h1>]]></description>
+    <pubDate>Fri, 24 Dec 2021 00:00:00 UT</pubDate>
+    <guid>https://PotassiumIodide.github.io/imamlab.diary/2021-12-24-test0.html</guid>
+    <dc:creator>Potassium Iodide</dc:creator>
+</item>
+
+    </channel>
+</rss>

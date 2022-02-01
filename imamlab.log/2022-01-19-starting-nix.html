@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <title>Nix学習備忘録Part 1: Nixに入門する</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, initial-scale=1">
+    <meta name="description" content="Nixを用いた環境構築の第一歩">
+    
+    <meta name="author" content="PotassiumIodide">
+    
+    
+    <meta name="keywords" content="Nix">
+    
+    <meta name="theme-color" content="#315086">
+
+    <meta property="og:site_name" content="ImamLab-web">
+    <meta property="og:title" content="Nix学習備忘録Part 1: Nixに入門する">
+    <meta property="og:url" content="https://PotassiumIodide.github.io/imamlab.log/2022-01-19-starting-nix.html">
+    <meta property="og:description" content="Nixを用いた環境構築の第一歩">
+    
+    <meta property="og:image" content="https://PotassiumIodide.github.io/images/nix_logo.png">
+    
+    
+    <meta property="og:type" content="article">
+    
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="ImamLab-web">
+    <meta property="twitter:title" content="Nix学習備忘録Part 1: Nixに入門する">
+    <meta property="twitter:description" content="Nixを用いた環境構築の第一歩">
+    
+    <meta property="twitter:image" content="https://PotassiumIodide.github.io/images/nix_logo.png">
+    
+    
+    <meta property="twitter:creator" content="@Aspirerator">
+    
+
+    <link rel="icon" type="image/icon" href="/favicon.ico">
+    <link rel="canonical" href="https://PotassiumIodide.github.io/imamlab.log/2022-01-19-starting-nix.html">
+    <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css"/>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/code.css" />
+    <!--[if lt IE 9]>
+      <script src="http://html5shiv.googlecode.com">
+    <![endif]-->
+
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script src="https://kit.fontawesome.com/2f54fe6e45.js" async></script> 
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/railscasts.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+  </head>
+  <body>
+    <header role="banner" class="l-header p-header">
+  <div class="l-container">
+    <div class="p-header__inner">
+      <h1 class="p-header__title">
+        <span class="u-visuallyHidden">ImamLab</span>
+        <a href="/" class="p-logo -primary">
+          <img src="/images/logo.png" alt="ImamLab" class="p-logo__image" />
+        </a>
+      </h1>
+      <nav role="navigation" class="p-header__nav js-drawerScope">
+  <button type="button" class="js-drawer c-button p-hamburger u-mobile-only" aria-controls="globalNav" aria-expanded="false">
+    <span class="p-hamburger__line">
+      <span class="u-visuallyHidden">メニューを開閉する</span>
+    </span>
+    <span class="p-hamburger__text"></span>
+  </button>
+  <div id="drawer" class="p-drawer" aria-hidden="true">
+    <h2 class="drawer__title">
+      <span class="u-visuallyHidden">
+        <span lang="en">Site Navigation</span>
+      </span>
+    </h2>
+    <p class="p-drawer__text">
+      <a href="#main" class="u-visuallyHidden">本文までスキップ</a>
+    </p>
+    <div id="globalNav" class="p-globalNav js-drawerTarget">
+      <ul class="p-globalNav__list">
+        <li class="p-globalNav__item"><a href="/" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--home with-text"></span>Home
+        </a></li>
+        <li class="p-globalNav__item"><a href="mailto:potassium.iodide28@gmail.com?subject=Work Inquiry" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--mail with-text"></span>Hire Me
+        </a></li>
+        <li class="p-globalNav__item"><a href="/atom.xml" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--rss with-text"></span>atom
+        </a></li>
+        <li class="p-globalNav__item"><a href="/rss.xml" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--rss with-text"></span>rss
+        </a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+    </div> <!-- /.p-header__inner -->
+  </div> <!-- /.l-container -->
+</header>
+    <main role="main" class="l-content">
+  <div class="l-content__col">
+    <article class="l-content__main p-post">
+      <section class="c-inner">
+        <header class="p-post__header">
+          <h1 id="post-title" class="p-post__title">
+            Nix学習備忘録Part 1: Nixに入門する
+          </h1>
+          <div class="p-post__timeInfo">
+            <small class="p-post__date">
+              <span class="c-font-icon c-font-icon--calendar with-text"></span>
+              2022-01-19
+            </small>
+            <small class="p-post__updated">
+              <span class="c-font-icon c-font-icon--update with-text"></span>
+              2022-01-19T23:22:36Z
+            </small>
+          </div>
+        </header>
+        <section class="p-post__body is-generatedBySSG">
+          <nav role="navigation" class="p-toc">
+  <h2 class="p-toc__header">
+    目次
+  </h2>
+  <div class="p-toc__contents">
+    <ul>
+    <li><a href="#はじめに"><span class="toc-section-number">1</span> はじめに</a></li>
+    <li><a href="#nixとは"><span class="toc-section-number">2</span> Nixとは</a></li>
+    <li><a href="#nixのインストール方法"><span class="toc-section-number">3</span> Nixのインストール方法</a></li>
+    <li><a href="#nixでpythonの環境を構築する"><span class="toc-section-number">4</span> NixでPythonの環境を構築する</a>
+    <ul>
+    <li><a href="#何ができるようになるか"><span class="toc-section-number">4.1</span> 何ができるようになるか</a></li>
+    <li><a href="#今回作るもの"><span class="toc-section-number">4.2</span> 今回作るもの</a></li>
+    <li><a href="#pythonを使えるようにする"><span class="toc-section-number">4.3</span> Pythonを使えるようにする</a></li>
+    <li><a href="#pythonパッケージを利用可能にする"><span class="toc-section-number">4.4</span> Pythonパッケージを利用可能にする</a></li>
+    <li><a href="#プログラムを書く詳細は省略"><span class="toc-section-number">4.5</span> プログラムを書く(詳細は省略)</a></li>
+    </ul></li>
+    <li><a href="#まとめ"><span class="toc-section-number">5</span> まとめ</a></li>
+    </ul>
+  </div>
+</nav>
+<h1 data-number="1" id="はじめに"><span class="header-section-number">1</span> はじめに</h1>
+<p>技術記事をまともに書くのは初めてなので、 記述が冗長(既にこの章が冗長かもしれない)であると感じることもあるかもしれませんが、 温かい目で読んで頂ければ幸いです。 また、読者にNixの入門をさせることが目的ではなく、 あくまで個人的にNixを勉強していて、 そろそろどこかにまとめないと忘れそうだと感じたので、 本シリーズはタイトル通り``備忘録"という位置付けです。 もし、情報に誤り等御座いましたら、 Twitter、GitHub、またはEmailがフッターにありますので、 そちらからご報告頂ければ有難いです。</p>
+<!--more-->
+<h1 data-number="2" id="nixとは"><span class="header-section-number">2</span> Nixとは</h1>
+<p>``Nix"は<strong>純粋関数型パッケージマネージャ</strong>の1つです。 パッケージを純粋関数型言語の<strong>値</strong>として扱います。 つまり、各パッケージは副作用を持たない関数によって構築され、 ビルド後に変更されることはありません。</p>
+<p>…と、あまり抽象的な話をし過ぎてもHaskell等の関数型プログラミング言語を使ったことがある人であれば、 何となくは、こういうことかと理解できるかもしれませんが、 そうでない人にとっては何を言ってるかさっぱりだと思うので、 (というより、私自身も完全には理解できていないので、) 実際にPythonを例に具体的に環境構築を行なってみます。</p>
+<p>Nixは学習コストが高いことでも有名なので、 全部理解して発信するより、機能に少しずつ触れながら、 こういうことできました～って発信する方が、 この記事を読む方も置いてけぼりにならなくて良いかなという 淡い期待と甘えで筆を進めています。</p>
+<h1 data-number="3" id="nixのインストール方法"><span class="header-section-number">3</span> Nixのインストール方法</h1>
+<p>日本語でも既に記事があり、何番煎じかわかりませんが、 一応載せておきます。</p>
+<p>※以下のインストール方法は2022/01/19現在のものです。</p>
+<dl id="nix-install-guide" class="p-accordion" role="tablist">
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="nix-install-guide" type="button">
+<span class="c-font-icon c-font-icon--apple with-text"></span> Mac
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>以下のコマンド実行する:</p>
+<pre><code>sh &lt;(curl -L https://nixos.org/nix/install) --darwin-use-unencrypted-nix-store-volume --daemon</code></pre>
+<p>これで上手く行かない場合は、以下を実行する:</p>
+<pre><code>sh &lt;(curl https://abathur-nix-install-tests.cachix.org/serve/yihf8zbs0jwph2rs9qfh80dnilijxdi2/install) --tarball-url-prefix https://abathur-nix-install-tests.cachix.org/serve</code></pre>
+</dd>
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="nix-install-guide" type="button">
+<span class="c-font-icon c-font-icon--linux with-text"></span> Linux
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>依存関係のインストール</p>
+<pre><code>sudo apt update
+sudo apt upgrade
+sudo apt install git curl make -y</code></pre>
+<p>Nixのインストール:</p>
+<pre><code>curl -L https://nixos.org/nix/install | sh</code></pre>
+<p><code>.bashrc</code>に以下を記述して、<code>.profile</code>ファイルを読み込むようにする:</p>
+<pre><code>. ~/.nix-profile/etc/profile.d/nix.sh</code></pre>
+<p>そのほかのインストール方法は<a href="https://nixos.org/nix/download.html">公式ドキュメント</a>を参照。</p>
+</dd>
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="nix-install-guide" type="button">
+<span class="c-font-icon c-font-icon--windows with-text"></span> Windows(WSL)
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>WSLを利用する。WSLの使い方についての説明は本筋と離れるため、省略する。 依存関係のインストール:</p>
+<pre><code>sudo apt uodate
+sudo apt upgrade
+sudo apt install git curl make xdg-utils -y</code></pre>
+<p><code>.bashrc</code>に以下を記述してパスを通し、<code>.profile</code>を読み込むようにする:</p>
+<pre><code>PATH=$(/usr/bin/printenv PATH | /usr/bin/perl -ne &#39;print join(&quot;:&quot;, grep { !/\/mnt\/[a-z]/ } split(/:/));&#39;)
+. ~/.nix-profile/etc/profile.d/nix.sh</code></pre>
+<p>Nix用のフォルダを作成:</p>
+<pre><code>sudo mkdir -p /etc/nix</code></pre>
+<p>WindowsでNixを利用するためには、<code>/etc/nix/nix.conf</code>を作成し、ファイル内に以下を記述:</p>
+<pre><code>sandbox = false
+use-sqlite-wal = false</code></pre>
+<p>Nixのインストール:</p>
+<pre><code>curl -L https://nixos.org/nix/install | sh</code></pre>
+</dd>
+</dl>
+<h1 data-number="4" id="nixでpythonの環境を構築する"><span class="header-section-number">4</span> NixでPythonの環境を構築する</h1>
+<h2 data-number="4.1" id="何ができるようになるか"><span class="header-section-number">4.1</span> 何ができるようになるか</h2>
+<p>今まで私はpyenvでPythonのバージョンを管理し、 virtualenvを使って各種パッケージの管理を行なっていました。</p>
+<p>Nixを用いると、pyenvもvirtualenvも使わず、 Pythonのバージョン、パッケージをまとめて管理できます<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。 また、この環境はプロジェクトごとに作ることができ、 グローバル環境を汚すことなく、 クリーンにインストールすることができます。</p>
+<h2 data-number="4.2" id="今回作るもの"><span class="header-section-number">4.2</span> 今回作るもの</h2>
+<p>何を作るのかはあまり重要じゃないのですが、 <strong>PNG形式の画像ファイルをPDF形式に変換</strong>するプログラムを作成します。 理由については、本筋と関係ないので、読みたい方だけ読んでください。</p>
+<details>
+<summary>
+なぜPDF変換のプロジェクト？
+</summary>
+<div>
+<p>論文を書いたりするときに、LaTeXを使うのですが、 pngファイルの出力が上手く行かないことがあり、 eps形式のファイルが推奨はされているのですが、 pdfで十分出力される上、使い勝手も良いので、 変換する作業が必要になることがちょくちょくあります。</p>
+論文に使うような画像の変換に、 オンラインの変換サービスを利用するのは流石に気が引けるので、 Pythonで一気に変換できた方が良いなと考えた次第です。
+</div>
+</details>
+<h2 data-number="4.3" id="pythonを使えるようにする"><span class="header-section-number">4.3</span> Pythonを使えるようにする</h2>
+<p>まず、現在の状況を確認します。 <code>~/work</code>下に<code>png2pdf</code>ディレクトリを作成します。</p>
+<blockquote>
+<p>ホームディレクトリ<code>~</code>は<code>/home/username</code>にあるとします。</p>
+</blockquote>
+<pre><code>$ cd ~
+$ mkdir work &amp;&amp; cd $_
+$ mkdir png2pdf &amp;&amp; cd $_
+$ pwd
+/home/usename/work/png2pdf
+$ ls
+$</code></pre>
+<p>既存のPythonの環境はすべて消し去ったので、 今は<code>python</code>コマンドは使えない状況です:</p>
+<pre><code>$ python
+python: command not found</code></pre>
+<p>ここで、お好みのエディタで現在のディレクトリ(<code>~/work/png2pdf</code>)に、 以下のような<code>shell.nix</code>という名前のファイルを作成します。</p>
+<div class="sourceCode" id="cb13" data-filepath="shell.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">pkgs</span> <span class="pp">?</span> import <span class="op">&lt;</span>nixpkgs<span class="op">&gt;</span> {} , ...}:</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="ex">with</span> pkgs<span class="kw">;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ex">mkShell</span> {</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="ex">buildInputs</span> = [ python3 ]<span class="kw">;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+<p>以下のような状態であればOKです。</p>
+<pre><code>$ pwd
+/home/username/work/png2pdf
+$ ls
+shell.nix
+$ cat shell.nix
+{ pkgs ? import &lt;nixpkgs&gt; {} , ...}:
+
+with pkgs;
+mkShell {
+  buildInputs = [ python3 ];
+}</code></pre>
+<p>ここで、<code>nix-shell</code>というコマンドを入力すると、 Pythonがインストールされたシェルが起動します。</p>
+<pre><code>$ nix-shell
+# 初回は若干時間が掛かるかもしれません。
+[nix-shell:~/work/png2pdf]$ python
+Python 3.9.9 (main, Nov 15 2021, 18:05:17)
+[GCC 10.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; 1 + 1
+2
+&gt;&gt;&gt; exit()
+[nix-shell:~/work/png2pdf]$ </code></pre>
+<p><code>~/work/png2pdf</code>下でPythonが使えるようになりました！</p>
+<p>すでにグローバルにPythonが入っていた人のために、 どのPythonが使われているのかも確認してみましょう。</p>
+<pre><code>[nix-shell:~/work/png2pdf]$ which python
+/nix/store/dn4fwp0yx6nsa85cr20cwvdmg64xwmcy-python3-3.9.9/bin/python</code></pre>
+<p>頭に<code>/nix/store/</code>と付いています。 各種パッケージ等がインストールされる先はこのNix Storeと呼ばれる場所で、自分のPCで利用可能なパッケージがすべて含まれています。</p>
+<p>また、<code>python3-3.9.9</code>というバージョンの前にハッシュのようなものが付いています。 このおかげで、バージョンは同じだけど、依存関係は違うようなPythonも<strong>衝突</strong>(conflict)しないことが保証されています。</p>
+<p>このシェル環境から出るには<code>exit</code>とタイプします。 この環境から抜けると、最初の状態と同様、<code>python</code>は使えなくなります。 グローバルの環境は一切汚れていないことがわかります。</p>
+<pre><code>[nix-shell:~/work/png2pdf]$ exit
+$ python
+python: command not found</code></pre>
+<p>今回作るPNGをPDFに変換するプログラムは<code>img2pdf</code>というパッケージを必要とします。 しかし、現在そのようなパッケージはインストールしていないため、使うことができません。 実際に<code>nix-shell</code>コマンドで再度シェルに入ってみます。 2回目なので、すぐにシェルが起動します。</p>
+<pre><code>$ nix-shell
+[nix-shell:~/work/png2pdf]$ python
+Python 3.9.9 (main, Nov 15 2021, 18:05:17)
+[GCC 10.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; import img2pdf
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+ModuleNotFoundError: No module named &#39;img2pdf&#39;
+&gt;&gt;&gt; exit()
+[nix-shell:~/work/png2pdf]$ exit
+$</code></pre>
+<h2 data-number="4.4" id="pythonパッケージを利用可能にする"><span class="header-section-number">4.4</span> Pythonパッケージを利用可能にする</h2>
+<p><code>img2pdf</code>を利用可能にするためには、<code>shell.nix</code>の<code>buildInputs</code>に <code>python3Packages.img2pdf</code>という記述を追加します:</p>
+<div class="sourceCode" id="cb19" data-filepath="shell.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">pkgs</span> <span class="pp">?</span> import <span class="op">&lt;</span>nixpkgs<span class="op">&gt;</span> {} , ...}:</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="ex">with</span> pkgs<span class="kw">;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="ex">mkShell</span> {</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="ex">buildInputs</span> = [</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="ex">python3</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">python3Packages.img2pdf</span> <span class="co"># &lt;- この行を追加</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+<p>再度<code>nix-shell</code>コマンドにより、再度シェルを起動してみます。</p>
+<p>これで<code>img2pdf</code>が使えるようになってるはず…</p>
+<pre><code>$ nix-shell
+[nix-shell:~/work/png2pdf]$ python
+(省略)
+&gt;&gt;&gt; import img2pdf
+Traceback (most recent call last):
+(中略)
+ModuleNotFoundError: No module named &#39;PIL&#39;
+&gt;&gt;&gt;</code></pre>
+<p><code>PIL</code>という名前のモジュールが見つかりませんってエラーが出ました。 <code>img2pdf</code>を使用するには、<code>pillow</code>ってパッケージをインストールする必要があるみたいです。</p>
+<details>
+<summary>
+この問題どうにかならないの？(Pythonユーザー向け)
+</summary>
+<div>
+実はこの辺の依存関係もまとめて管理できるPythonのパッケージマネージャにPoetryというものが存在して、 これとNixのより進んだ技術を組み合わせるとこの辺りの依存関係問題も解決できます。
+</div>
+</details>
+<p>ということで、前置きが長くなりましたが、依存関係の<code>pillow</code>を<code>buildInput</code>に加えます。</p>
+<pre><code>{ pkgs ? import &lt;nixpkgs&gt; {} , ...}:
+
+with pkgs;
+mkShell {
+  buildInputs = [
+    python3
+    python3Packages.pillow # &lt;- この行を追加
+    python3Packages.img2pdf
+  ];
+}</code></pre>
+<p>再度<code>nix-shell</code>を実行し、<code>img2pdf</code>が使えるか確認してみます。</p>
+<pre><code>$ nix-shell
+[nix-shell:~/work/png2pdf]$ python
+Python 3.9.9 (main, Nov 15 2021, 18:05:17)
+[GCC 10.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; import img2pdf
+&gt;&gt;&gt; img2pdf.__version__
+&#39;0.4.3&#39;
+&gt;&gt;&gt; exit()
+[nix-shell:~/work/png2pdf]$ </code></pre>
+<p>無事<code>img2pdf</code>が使えるようになりました！</p>
+<h2 data-number="4.5" id="プログラムを書く詳細は省略"><span class="header-section-number">4.5</span> プログラムを書く(詳細は省略)</h2>
+<p>Pythonのプログラムは主目的から外れるので、 プログラムとファイル構造だけ載せ、プログラムに関する詳細な説明は省略します。</p>
+<blockquote>
+<p>メインはNixの方なので、Pythonのこの書き方おかしいだろとか、 ファイル構造どうにかならんのかとか、 そういうツッコミは心の中でお願いします。笑</p>
+</blockquote>
+<pre><code>[nix-shell:~/work/png2pdf]$ mkdir png pdf
+[nix-shell:~/work/png2pdf]$ ls
+pdf  png  shell.nix</code></pre>
+<p>この<code>png</code>フォルダにPDFに変換したいPNG形式の画像ファイルを入れます。 <code>pdf</code>フォルダは空のままです。</p>
+<pre><code>[nix-shell:~/work/png2pdf]$ ls png
+fuga.png  hoge.png
+[nix-shell:~/work/png2pdf]$ ls pdf
+[nix-shell:~/work/png2pdf]$ </code></pre>
+<p>お好みのエディタで、<code>~/work/img2pdf/</code>内に、 以下のような<code>main.py</code>ファイルを作成します:</p>
+<div class="sourceCode" id="cb25" data-filepath="main.py"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> img2pdf</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PIL <span class="im">import</span> Image </span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&#39;__main__&#39;</span>:</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    cwd <span class="op">=</span> os.getcwd()</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    pdf_dir_path <span class="op">=</span> <span class="ss">f&quot;</span><span class="sc">{</span>cwd<span class="sc">}</span><span class="ss">/pdf/&quot;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    png_dir_path <span class="op">=</span> <span class="ss">f&quot;</span><span class="sc">{</span>cwd<span class="sc">}</span><span class="ss">/png/&quot;</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> png_filename <span class="kw">in</span> os.listdir(png_dir_path):</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>        pdf_filename <span class="op">=</span> png_filename.replace(<span class="st">&#39;.png&#39;</span>, <span class="st">&#39;.pdf&#39;</span>)</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># 既に変換済みファイルがあったらスキップ</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> pdf_filename <span class="kw">in</span> os.listdir(pdf_dir_path):</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> <span class="bu">open</span>(pdf_dir_path <span class="op">+</span> pdf_filename, <span class="st">&quot;wb&quot;</span>) <span class="im">as</span> f:</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>            f.write(img2pdf.convert(</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>                Image.<span class="bu">open</span>(png_dir_path <span class="op">+</span> png_filename).filename</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>            ))</span></code></pre></div>
+<p>ファイル構造が以下のようになっていればOKです。</p>
+<pre><code>[nix-shell:~/work/png2pdf]$ tree .
+.
+├── main.py
+├── pdf
+├── png
+│   ├── fuga.png
+│   └── hoge.png
+└── shell.nix
+
+2 directories, 4 files</code></pre>
+<p>では、<code>main.py</code>を実行してみます:</p>
+<pre><code>[nix-shell:~/work/png2pdf]$ python main.py
+Image contains an alpha channel which will be stored as a separate soft mask (/SMask) image in PDF.
+Image contains an alpha channel which will be stored as a separate soft mask (/SMask) image in PDF.
+
+[nix-shell:~/work/png2pdf]$ tree .
+.
+├── main.py
+├── pdf
+│   ├── fuga.pdf
+│   └── hoge.pdf
+├── png
+│   ├── fuga.png
+│   └── hoge.png
+└── shell.nix
+
+2 directories, 6 files
+[nix-shell:~/work/png2pdf]$ exit
+$ </code></pre>
+<p>新しく<code>hoge.pdf</code>と<code>fuga.pdf</code>が<code>pdf</code>ディレクトリの中に追加されました。</p>
+<h1 data-number="5" id="まとめ"><span class="header-section-number">5</span> まとめ</h1>
+<p>Nixを用いてPythonと、Pythonのパッケージを利用可能にする方法を紹介しました。</p>
+<p>次回は、毎回<code>nix-shell</code>で環境に入って、 <code>exit</code>で出るの面倒臭くない？って問題を解決します。</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p> 本当にNixだけで良いかというと、実はそうでもなく、 PoetryというPythonのパッケージマネージャ―を使った方が良くなったりもするのですが、 小規模のプロジェクトではそれほど問題にはならないので、 今後、必要に応じて記事を書きます。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+        </section>
+      </section>
+    </article>
+    <div class="u-mobile-only">
+      <div class="p-pagination">
+  
+	  <button class="p-pagination__media --disabled" type="button" disabled>
+      <div class="c-media">
+        <span class="c-font-icon c-font-icon--angle-left"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/No_Image.png" alt="No Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">前の記事:</h3>
+			    <p class="p-pagination__message">前の記事はありません。本ページが最も古い記事です。</p>
+		    </div>
+      </div>
+		</button>
+  
+
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-20-starting-direnv.html" class="c-media__reverse">
+        <span class="c-font-icon c-font-icon--angle-right"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Next Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">次の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-20T01:52:48Z
+					</p>
+          <h4 class="p-pagination__title">Nix学習備忘録Part 1.5: direnvを導入する</h4>
+		    </div>
+      </a>
+		</button>
+	
+</div>
+    </div>
+    <aside role="complementary" class="l-content__side">
+      <section class="c-inner">
+        <h1>
+          <a href="/">
+            <img class="c-icon" alt="PotassiumIodide" src="/images/icon.png"/>
+          </a>
+        </h1>
+        <p>Potassium Iodide</p>
+      </section>
+    </aside>
+  </div>
+  <div class="l-container u-pc-only">
+    <div class="p-pagination">
+  
+	  <button class="p-pagination__media --disabled" type="button" disabled>
+      <div class="c-media">
+        <span class="c-font-icon c-font-icon--angle-left"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/No_Image.png" alt="No Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">前の記事:</h3>
+			    <p class="p-pagination__message">前の記事はありません。本ページが最も古い記事です。</p>
+		    </div>
+      </div>
+		</button>
+  
+
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-20-starting-direnv.html" class="c-media__reverse">
+        <span class="c-font-icon c-font-icon--angle-right"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Next Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">次の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-20T01:52:48Z
+					</p>
+          <h4 class="p-pagination__title">Nix学習備忘録Part 1.5: direnvを導入する</h4>
+		    </div>
+      </a>
+		</button>
+	
+</div>
+  </div>
+</main>
+    <footer role="contentinfo" id="footer" class="l-footer">
+	<div class="l-center l-footer__primary">
+		<p class="p-footer__logo">
+      <a href="/" class="p-logo -secondary">
+        <img src="/images/logo.png" alt="ImamLab" class="p-logo__image" />
+      </a>
+		</p>
+		<p class="p-footer__message">Potassium Iodideの個人ページ ImamLab</p>
+		<ul class="l-cluster p-footer__bioList">
+      <li class="p-footer__bioItem"><a href="https://twitter.com/Aspirerator?t=l6BfFL0XJsC2pUjAnAcFsA&s=09" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--twitter" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">Twitter</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="https://github.com/PotassiumIodide/" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--github" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">GitHub</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="mailto:potassium.iodide28@gmail.com" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--mail" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">Email</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="/rss.xml" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--rss" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">RSS</span>
+      </a></li>
+		</ul>
+	</div>
+	<div class="l-center l-footer__secondary">
+		<p id="copyright" class="p-footer__copy">&copy; 2022 PotassiumIodide</p>
+		<p class="p-footer__message">
+			Site proudly generated by
+		  <a href="http://jaspervdj.be/hakyll" class="p-footer__link">Hakyll</a>
+		</p>
+	</div>
+</footer>
+
+    <script async src="/js/script.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="  crossorigin="anonymous"></script>
+    <script src="/js/animations.js"></script>
+    <script src="/js/accordion.js"></script>
+  </body>
+</html>

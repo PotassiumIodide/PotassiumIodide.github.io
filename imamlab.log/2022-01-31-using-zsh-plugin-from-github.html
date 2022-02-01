@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <title>Nix学習備忘録Part 2-1-2: GitHubのzshプラグインを利用する</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, initial-scale=1">
+    <meta name="description" content="Home ManagerでZ Shellを導入する">
+    
+    <meta name="author" content="PotassiumIodide">
+    
+    
+    <meta name="keywords" content="Nix、home-manager, zsh">
+    
+    <meta name="theme-color" content="#315086">
+
+    <meta property="og:site_name" content="ImamLab-web">
+    <meta property="og:title" content="Nix学習備忘録Part 2-1-2: GitHubのzshプラグインを利用する">
+    <meta property="og:url" content="https://PotassiumIodide.github.io/imamlab.log/2022-01-31-using-zsh-plugin-from-github.html">
+    <meta property="og:description" content="Home ManagerでZ Shellを導入する">
+    
+    <meta property="og:image" content="https://PotassiumIodide.github.io/images/nix_logo.png">
+    
+    
+    <meta property="og:type" content="article">
+    
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="ImamLab-web">
+    <meta property="twitter:title" content="Nix学習備忘録Part 2-1-2: GitHubのzshプラグインを利用する">
+    <meta property="twitter:description" content="Home ManagerでZ Shellを導入する">
+    
+    <meta property="twitter:image" content="https://PotassiumIodide.github.io/images/nix_logo.png">
+    
+    
+    <meta property="twitter:creator" content="@Aspirerator">
+    
+
+    <link rel="icon" type="image/icon" href="/favicon.ico">
+    <link rel="canonical" href="https://PotassiumIodide.github.io/imamlab.log/2022-01-31-using-zsh-plugin-from-github.html">
+    <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css"/>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/code.css" />
+    <!--[if lt IE 9]>
+      <script src="http://html5shiv.googlecode.com">
+    <![endif]-->
+
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script src="https://kit.fontawesome.com/2f54fe6e45.js" async></script> 
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/railscasts.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+  </head>
+  <body>
+    <header role="banner" class="l-header p-header">
+  <div class="l-container">
+    <div class="p-header__inner">
+      <h1 class="p-header__title">
+        <span class="u-visuallyHidden">ImamLab</span>
+        <a href="/" class="p-logo -primary">
+          <img src="/images/logo.png" alt="ImamLab" class="p-logo__image" />
+        </a>
+      </h1>
+      <nav role="navigation" class="p-header__nav js-drawerScope">
+  <button type="button" class="js-drawer c-button p-hamburger u-mobile-only" aria-controls="globalNav" aria-expanded="false">
+    <span class="p-hamburger__line">
+      <span class="u-visuallyHidden">メニューを開閉する</span>
+    </span>
+    <span class="p-hamburger__text"></span>
+  </button>
+  <div id="drawer" class="p-drawer" aria-hidden="true">
+    <h2 class="drawer__title">
+      <span class="u-visuallyHidden">
+        <span lang="en">Site Navigation</span>
+      </span>
+    </h2>
+    <p class="p-drawer__text">
+      <a href="#main" class="u-visuallyHidden">本文までスキップ</a>
+    </p>
+    <div id="globalNav" class="p-globalNav js-drawerTarget">
+      <ul class="p-globalNav__list">
+        <li class="p-globalNav__item"><a href="/" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--home with-text"></span>Home
+        </a></li>
+        <li class="p-globalNav__item"><a href="mailto:potassium.iodide28@gmail.com?subject=Work Inquiry" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--mail with-text"></span>Hire Me
+        </a></li>
+        <li class="p-globalNav__item"><a href="/atom.xml" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--rss with-text"></span>atom
+        </a></li>
+        <li class="p-globalNav__item"><a href="/rss.xml" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--rss with-text"></span>rss
+        </a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+    </div> <!-- /.p-header__inner -->
+  </div> <!-- /.l-container -->
+</header>
+    <main role="main" class="l-content">
+  <div class="l-content__col">
+    <article class="l-content__main p-post">
+      <section class="c-inner">
+        <header class="p-post__header">
+          <h1 id="post-title" class="p-post__title">
+            Nix学習備忘録Part 2-1-2: GitHubのzshプラグインを利用する
+          </h1>
+          <div class="p-post__timeInfo">
+            <small class="p-post__date">
+              <span class="c-font-icon c-font-icon--calendar with-text"></span>
+              2022-01-31
+            </small>
+            <small class="p-post__updated">
+              <span class="c-font-icon c-font-icon--update with-text"></span>
+              2022-01-31T20:37:15Z
+            </small>
+          </div>
+        </header>
+        <section class="p-post__body is-generatedBySSG">
+          <nav role="navigation" class="p-toc">
+  <h2 class="p-toc__header">
+    目次
+  </h2>
+  <div class="p-toc__contents">
+    <ul>
+    <li><a href="#はじめに"><span class="toc-section-number">1</span> はじめに</a></li>
+    <li><a href="#外部パッケージの導入方法"><span class="toc-section-number">2</span> 外部パッケージの導入方法</a>
+    <ul>
+    <li><a href="#autojump-曖昧な名前でディレクトリ移動を可能にする"><span class="toc-section-number">2.1</span> autojump: 曖昧な名前でディレクトリ移動を可能にする</a></li>
+    </ul></li>
+    <li><a href="#lsコマンドをかっこよくする"><span class="toc-section-number">3</span> lsコマンドをかっこよくする</a></li>
+    <li><a href="#まとめ"><span class="toc-section-number">4</span> まとめ</a></li>
+    </ul>
+  </div>
+</nav>
+<h1 data-number="1" id="はじめに"><span class="header-section-number">1</span> はじめに</h1>
+<p>本記事ではHome Managerを用いて導入したZ ShellでGitHub上にあるプラグインを利用する方法について書きます。 Home Mangerを用いたzshの導入がお済みでない方は、<a href="https://potassiumiodide.github.io/imamlab.log/2022-01-30-starting-zsh-with-home-manager.html">前回の記事</a>を先にご覧ください。</p>
+<p>また、GitHub上のオープンソースを利用させて頂き、 <code>ls</code>コマンドの見た目も整えてみたいと思います。</p>
+<!--more-->
+<h1 data-number="2" id="外部パッケージの導入方法"><span class="header-section-number">2</span> 外部パッケージの導入方法</h1>
+<p>基本的には<code>pkgs.fetchFromGitHub</code>関数を用いて、 GitHubからソースを引っ張ってきます。 <code>let ～ in ...</code>式を用いて、パッケージをインストールします。 <code>let</code>式の中にはパッケージの情報を持つ定数を記述します。 そのフォーマットが以下の通りです:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">variableName</span> = {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">name</span> = <span class="st">&quot;プラグイン名&quot;</span><span class="kw">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="ex">owner</span> = <span class="st">&quot;作成者のGitHubユーザ名&quot;</span><span class="kw">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">repo</span> = <span class="st">&quot;プラグインのリポジトリ名&quot;</span><span class="kw">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rev</span> = <span class="st">&quot;コミットID&quot;</span><span class="kw">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">sha256</span> = <span class="st">&quot;Nixが生成するハッシュ値&quot;</span><span class="kw">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="er">}</span><span class="kw">;</span></span></code></pre></div>
+<p><code>sha256</code>以外はすぐにイメージが付くと思います。 一番戸惑うのが<code>sha256</code>ですが、これはNixが自動で生成してくれるハッシュを記述します。 Nixの記事では多くの場合、<code>"00000000000000000000000000000000000000000000"</code>などの適当な値で束縛している例をよく見ますが、 一応<code>lib.fakeSha256</code>という関数が用意されており、この関数を使えば桁数を覚えておく必要も無いので、 私は最初にこの<code>lib.fakeSha256</code>という関数を利用しています。</p>
+<p>zshプラグインの場合、<code>home.nix</code>の<code>zsh</code>内に以下のように記述します:</p>
+<div class="sourceCode" id="cb2" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">plugins</span> =</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">let</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>          <span class="ex">plugin1</span> = {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;plugin1&quot;</span><span class="kw">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;someone&quot;</span><span class="kw">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;repository1&quot;</span><span class="kw">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&quot;</span><span class="kw">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = <span class="st">&quot;mrPMgwVkqOlKjvy1106MUKFjfkslajfjfkdslasjdkfj&quot;</span><span class="kw">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>          <span class="ex">plugin2</span> = {</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;plugin2&quot;</span><span class="kw">;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;somebody&quot;</span><span class="kw">;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;repository2&quot;</span><span class="kw">;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&quot;</span><span class="kw">;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = <span class="st">&quot;KLUYpUu4DHRumQZ3w59m9aTW6TBKMCXl2UcKihfjdhsj&quot;</span><span class="kw">;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>          plugin1</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>          plugin2</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        <span class="bu">]</span><span class="kw">;</span></span></code></pre></div>
+<p>ざっくり説明すると、<code>plugins = [];</code>というリスト形式で宣言するものを、 <code>let ～ in ...</code>式を用いて、 プラグインを定義してから、リストに入れるということをしています。</p>
+<p>では、早速<code>autojump</code>というzshのプラグインを入れてみましょう。</p>
+<h2 data-number="2.1" id="autojump-曖昧な名前でディレクトリ移動を可能にする"><span class="header-section-number">2.1</span> autojump: 曖昧な名前でディレクトリ移動を可能にする</h2>
+<p><code>autojump</code>は一度訪問したことのあるディレクトリであれば、 曖昧な名前で移動できるようになるという便利なプラグインです。 GitHubリポジトリは<a href="https://github.com/wting/autojump">wting/autojump</a>です。</p>
+<p>2022/01/31現在の最新バージョンを上のフォーマットを参考にして設定してみます。 記述するのは<code>home.nix</code>の<code>zsh</code>の中です。</p>
+<div class="sourceCode" id="cb3" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">plugins</span> =</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">let</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>          <span class="ex">autojump</span> = {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;wting&quot;</span><span class="kw">;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;06e082c91805cb022900819b2e0881eeae780d58&quot;</span><span class="kw">;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = lib.fakeSha256<span class="kw">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>          autojump</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">]</span><span class="kw">;</span></span></code></pre></div>
+<p>これで<code>home-manager switch</code>を実行すると、<code>sha256</code>の値が適当であるため、エラーが出ます:</p>
+<pre><code>$ home-manager switch
+these 3 derivations will be built:
+  /nix/store/dvhngvpnk39ib19i9mlh8m89j621nykx-source.drv
+  /nix/store/2a26hw00za9x5bpwfmxglq06v6dksdw4-home-manager-files.drv
+  /nix/store/2l3b8vl5bfkcjspd56cimzw7wxnwyfj6-home-manager-generation.drv
+building &#39;/nix/store/dvhngvpnk39ib19i9mlh8m89j621nykx-source.drv&#39;...
+
+trying https://github.com/wting/autojump/archive/06e082c91805cb022900819b2e0881eeae780d58.tar.gz
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   156    0   156    0     0    491      0 --:--:-- --:--:-- --:--:--   490
+100 55488    0 55488    0     0  79451      0 --:--:-- --:--:-- --:--:-- 79451
+unpacking source archive /tmp/nix-build-source.drv-0/06e082c91805cb022900819b2e0881eeae780d58.tar.gz
+error: hash mismatch in fixed-output derivation &#39;/nix/store/dvhngvpnk39ib19i9mlh8m89j621nykx-source.drv&#39;:
+         specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+            got:    sha256-mrPMgwVkqOlKjvy1106MUKF7OlEtKdt8E9mqCg7U9+U=
+error: 1 dependencies of derivation &#39;/nix/store/2a26hw00za9x5bpwfmxglq06v6dksdw4-home-manager-files.drv&#39; failed to build
+error: 1 dependencies of derivation &#39;/nix/store/2l3b8vl5bfkcjspd56cimzw7wxnwyfj6-home-manager-generation.drv&#39; failed to build</code></pre>
+<p>エラーメッセージの以下の部分を見ます:</p>
+<pre><code>         specified: sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+            got:    sha256-mrPMgwVkqOlKjvy1106MUKF7OlEtKdt8E9mqCg7U9+U=</code></pre>
+<p><code>mrPMgwVkqOlKjvy1106MUKF7OlEtKdt8E9mqCg7U9+U=</code>という<code>sha256</code>の値を期待したのに、 <code>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</code>という値を受け取ったというエラーです。 つまり、期待されているハッシュ値を<code>got</code>のところで教えてくれています。 これを先ほどの<code>lib.fakeSha256</code>のところに設定し直します:</p>
+<div class="sourceCode" id="cb6" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">plugins</span> =</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">let</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>          <span class="ex">autojump</span> = {</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;wting&quot;</span><span class="kw">;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;06e082c91805cb022900819b2e0881eeae780d58&quot;</span><span class="kw">;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = <span class="st">&quot;mrPMgwVkqOlKjvy1106MUKF7OlEtKdt8E9mqCg7U9+U=&quot;</span><span class="kw">;</span> <span class="co"># &lt;-ここを変更した</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>          autojump</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">]</span><span class="kw">;</span></span></code></pre></div>
+<p>これで<code>home-manager switch</code>を実行すると、Home Managerを切り替えることに成功します。</p>
+<p>実際、<code>zsh</code>のプラグインは<code>~/.config/zsh/plugins</code>に置かれ、 <code>autojump</code>がちゃんと存在しています:</p>
+<pre><code>$ ls ~/.config/zsh/plugins
+autojump</code></pre>
+<p>しかし、この段階では<code>autojump</code>は使えません。 <code>autojump</code>は<code>j</code>というコマンドで実行されるのですが、見つかりません:</p>
+<pre><code>$ which j
+j not found</code></pre>
+<p>これは、プラグインをGitHubから持ってきただけで、 プラグインとして使う宣言をしていないためです。</p>
+<p>そこで、<code>zsh</code>内の<code>oh-my-zsh</code>、<code>plugins</code>の中に<code>autojump</code>を使用することを宣言します:</p>
+<div class="sourceCode" id="cb9" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>      <span class="ex">oh-my-zsh</span> = {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">enable</span> = true<span class="kw">;</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="ex">plugins</span> = [</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;autojump&quot;</span> <span class="co"># &lt;- この行を追加した</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;extract&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;fzf&quot;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;git&quot;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;web-search&quot;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span></code></pre></div>
+<p>また、<code>autojump</code>をインストールする必要があります。 <a href="https://github.com/wting/autojump">autojumpのGitHubリポジトリ</a>で、 導入方法を確認してみると、 「<code>autojump</code>リポジトリ内の<code>install.py</code>を実行してインストールする」と書かれています。 つまり、<code>autojump</code>を導入するには、Pythonが必要になります。</p>
+<p>ここで、蛇足ではあるものの、ある程度重要な話をします。 インストール時のみにPythonが必要である場合、 <code>nix-shell -p python</code>を実行すれば<strong>一時的にPythonがある環境に入れる</strong>ので、 <strong>グローバル環境にPythonを入れることなく、インストールを済ませる</strong>ことができます。 筆者はこの方法でインストールし、使用することを試みましたが、 <code>autojump</code>については、動作するのにもPythonが必要であるため、 グローバルにPythonを入れる必要があるみたいです。 今回は結局グローバル環境に必要になってしまいましたが、一時的に使う方法も覚えておくと便利です。</p>
+<p>ということで、グローバルにPythonがある環境が必要となりました。 これは簡単です。<code>home</code>の<code>packages</code>内に<code>python</code>を追加するだけです。</p>
+<div class="sourceCode" id="cb10" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home</span> = {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">homeDirectory</span> = builtins.getEnv <span class="st">&quot;HOME&quot;</span><span class="kw">;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="ex">language.base</span> = <span class="st">&quot;en_US.UTF-8&quot;</span><span class="kw">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="ex">packages</span> = with pkgs<span class="kw">;</span> <span class="bu">[</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>      cachix</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>      niv</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>      python <span class="er">#</span> <span class="op">&lt;</span>- <span class="ex">この行を追加</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>      <span class="ex">yarn</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="ex">sessionPath</span> = [</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.local/bin&quot;</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="ex">sessionVariables</span> = {</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>      <span class="ex">EDITOR</span> = <span class="st">&quot;nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="ex">stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="ex">username</span> = builtins.getEnv <span class="st">&quot;USER&quot;</span><span class="kw">;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span><span class="kw">;</span></span></code></pre></div>
+<p>これで<code>home-manager switch</code>を実行して、<code>autojump</code>、 および<code>python</code>を追加した新しい環境に切り替えます。</p>
+<p>説明通り、Pythonを使って<code>autojump</code>をインストールします。</p>
+<pre><code>$ ~/.config/zsh/plugins/autojump/install.py</code></pre>
+<p>これで<code>autojump</code>が使えるようになりました。</p>
+<p>どのように使うのか、デモを載せておきます:</p>
+<details>
+<summary>
+autojumpのデモ
+</summary>
+<div>
+<pre><code>$ cd ~
+$ mkdir tmp             # デモ用の一時的なディレクトリ
+$ mkdir tmp/hoge        # デモ用の一時的なディレクトリ
+$ mkdir tmp/hoge/fuga   # デモ用の一時的なディレクトリ
+$ cd hoge               # hogeに訪問して足跡をつけておく
+$ cd fuga               # fugaに訪問して足跡をつけておく
+$ cd ~                  # 一度ホームディレクトリに戻る
+$ j h                   # hogeって名前を忘れてしまったけど、hを含むことは覚えている
+/home/username/tmp/hoge # hogeに移動している
+$ pwd                   # 本当に移動できているか確認
+/home/username/tmp/hoge # 移動している
+$ j f                   # fugaって名前を忘れてしまったけど、fを含むことは覚えている
+/home/username/tmp/hoge/fuga # fugaに移動した
+$ pwd                        # 本当に移動できているか確認
+/home/username/tmp/hoge/fuga # 移動している
+$ cd ~                  # お掃除するためにホームディレクトリへ
+$ rm -r tmp             # お掃除</code></pre>
+</div>
+</details>
+<h1 data-number="3" id="lsコマンドをかっこよくする"><span class="header-section-number">3</span> lsコマンドをかっこよくする</h1>
+<p>本節では、<code>ls</code>コマンドで表示されるディレクトリやファイルに、 色を割り当てる方法を記述します。</p>
+<p>とはいっても、仕組みが若干複雑なので、動けばヨシ！ということで、 詳しい話は省略します。 <a href="https://github.com/trapd00r/LS_COLORS/blob/master/LS_COLORS">GitHub上のtrapd/LS_COLORS</a> を使用させていただきます。</p>
+<p>何をしているのか詳しく知りたい方は、以下の2本の動画をご視聴ください:</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/1nU_hR2kod4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+</iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PmD8Qe8z2sY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+</iframe>
+<p><code>home.nix</code>の<code>home.packages</code>の箇所を次のように書き換えます:</p>
+<div class="sourceCode" id="cb13" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>    <span class="ex">packages</span> = with pkgs<span class="kw">;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>      <span class="bu">let</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>        <span class="ex">LS_COLORS</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>        <span class="ex">owner</span> = <span class="st">&quot;trapd00r&quot;</span><span class="kw">;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        <span class="ex">repo</span> = <span class="st">&quot;LS_COLORS&quot;</span><span class="kw">;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">rev</span> = <span class="st">&quot;2402dfac278ec88909e8a4883b680fb1591fcd3f&quot;</span><span class="kw">;</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="ex">sha256</span> = lib.fakeSha256<span class="kw">;</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>      <span class="ex">ls-colors</span> = pkgs.runCommand <span class="st">&quot;ls-colors&quot;</span> { } <span class="st">&#39;&#39;</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mkdir</span> <span class="at">-p</span> <span class="va">$out</span>/bin <span class="va">$out</span>/share</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ln</span> <span class="at">-s</span> <span class="va">${pkgs</span><span class="er">.coreutils</span><span class="va">}</span>/bin/ls <span class="va">$out</span>/bin/ls</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ln</span> <span class="at">-s</span> <span class="va">${pkgs</span><span class="er">.coreutils</span><span class="va">}</span>/bin/dircolors <span class="va">$out</span>/bin/dircolors</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cp</span> <span class="va">${LS_COLORS}</span>/LS_COLORS <span class="va">$out</span>/share/LS_COLORS</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;&#39;</span><span class="kw">;</span>    </span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>      <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>        cachix</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>        ls-colors # <span class="er">&lt;-</span> <span class="ex">ここも追加しています</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>        <span class="ex">niv</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        <span class="ex">python</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        <span class="ex">yarn</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>      <span class="ex">]</span><span class="kw">;</span></span></code></pre></div>
+<p>また、<code>zsh</code>の<code>envExtra</code>内に</p>
+<div class="sourceCode" id="cb14" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>        <span class="bu">eval</span> <span class="va">$(</span><span class="fu">dircolors</span> ~/.nix-profile/share/LS_COLORS<span class="va">)</span></span></code></pre></div>
+<p>を追記し、<code>shellAliases</code>に<code>ls = "ls --color=auto -F"</code>というエイリアスを追加すれば、完了です。</p>
+<p><code>home-manager switch</code>を実行すると、また<code>sha256</code>のハッシュ値でエラーが出るので、 上の説明と同様、<code>got</code>に書かれた<code>sha256</code>を設定してください。</p>
+<p><code>ls</code>コマンドで表示される内容がカラフルになりました！</p>
+<h1 data-number="4" id="まとめ"><span class="header-section-number">4</span> まとめ</h1>
+<p>外部パッケージの導入方法を紹介し、それを利用して <code>autojump</code>プラグインを有効にし、 <code>ls</code>コマンドで表示される色をカラフルにしました。</p>
+<p>最後に、最終的な<code>home.nix</code>を載せて終わります:</p>
+<details>
+<summary>
+ここまでの<code>home.nix</code>
+</summary>
+<div>
+<p><strong>※<code>sha256</code>のハッシュ値は異なるかもしれません</strong></p>
+<div class="sourceCode" id="cb15" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">config,</span> lib, pkgs, ... }:</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home</span> = {</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">homeDirectory</span> = builtins.getEnv <span class="st">&quot;HOME&quot;</span><span class="kw">;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="ex">language.base</span> = <span class="st">&quot;en_US.UTF-8&quot;</span><span class="kw">;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">packages</span> = with pkgs<span class="kw">;</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>      <span class="bu">let</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>        <span class="ex">LS_COLORS</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>        <span class="ex">owner</span> = <span class="st">&quot;trapd00r&quot;</span><span class="kw">;</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>        <span class="ex">repo</span> = <span class="st">&quot;LS_COLORS&quot;</span><span class="kw">;</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">rev</span> = <span class="st">&quot;2402dfac278ec88909e8a4883b680fb1591fcd3f&quot;</span><span class="kw">;</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>        <span class="ex">sha256</span> = <span class="st">&quot;Ny5jeh2lZMSADfG8KuoiD3X2P8Uwk/XjsCtXoOXuHWU=&quot;</span><span class="kw">;</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">};</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>      <span class="ex">ls-colors</span> = pkgs.runCommand <span class="st">&quot;ls-colors&quot;</span> { } <span class="st">&#39;&#39;</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mkdir</span> <span class="at">-p</span> <span class="va">$out</span>/bin <span class="va">$out</span>/share</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ln</span> <span class="at">-s</span> <span class="va">${pkgs</span><span class="er">.coreutils</span><span class="va">}</span>/bin/ls <span class="va">$out</span>/bin/ls</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ln</span> <span class="at">-s</span> <span class="va">${pkgs</span><span class="er">.coreutils</span><span class="va">}</span>/bin/dircolors <span class="va">$out</span>/bin/dircolors</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cp</span> <span class="va">${LS_COLORS}</span>/LS_COLORS <span class="va">$out</span>/share/LS_COLORS</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;&#39;</span><span class="kw">;</span>    </span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>      <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>        cachix</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>        ls-colors</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>        niv</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>        <span class="er">python</span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>        <span class="er">yarn</span></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>      <span class="bu">]</span><span class="er">;</span></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>    <span class="er">sessionPath</span> <span class="er">=</span> <span class="bu">[</span></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.local/bin&quot;</span></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>    <span class="bu">]</span><span class="kw">;</span></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>    <span class="ex">sessionVariables</span> = {</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>      <span class="ex">EDITOR</span> = <span class="st">&quot;nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">};</span></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>    <span class="ex">stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>    <span class="ex">username</span> = builtins.getEnv <span class="st">&quot;USER&quot;</span><span class="kw">;</span></span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs</span> = {</span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>    <span class="ex">direnv</span> = {</span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>      <span class="ex">nix-direnv.enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>    <span class="ex">gh</span> = {</span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">git</span> = {</span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a>      <span class="ex">userEmail</span> = <span class="st">&quot;potassium.iodide28@gmail.com&quot;</span><span class="kw">;</span></span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a>      <span class="ex">userName</span> = <span class="st">&quot;PotassiumIodide&quot;</span><span class="kw">;</span></span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a>    <span class="ex">home-manager</span> = {</span>
+<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">zsh</span> = {</span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>      <span class="ex">autocd</span> = true<span class="kw">;</span></span>
+<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a>      <span class="ex">defaultKeymap</span> = <span class="st">&quot;emacs&quot;</span><span class="kw">;</span></span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>      <span class="ex">dotDir</span> = <span class="st">&quot;.config/zsh&quot;</span><span class="kw">;</span></span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a>      <span class="ex">enableAutosuggestions</span> = true<span class="kw">;</span></span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a>      <span class="ex">enableCompletion</span> = true<span class="kw">;</span></span>
+<span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a>      <span class="ex">enableSyntaxHighlighting</span> = true<span class="kw">;</span></span>
+<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a>      <span class="ex">envExtra</span> = <span class="st">&#39;&#39;</span></span>
+<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">[</span> <span class="ot">-e</span> ~/.nix-profile/etc/profile.d/nix.sh <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a>          <span class="bu">.</span> ~/.nix-profile/etc/profile.d/nix.sh</span>
+<span id="cb15-70"><a href="#cb15-70" aria-hidden="true" tabindex="-1"></a>        <span class="cf">fi</span></span>
+<span id="cb15-71"><a href="#cb15-71" aria-hidden="true" tabindex="-1"></a>        <span class="bu">eval</span> <span class="va">$(</span><span class="fu">dircolors</span> ~/.nix-profile/share/LS_COLORS<span class="va">)</span></span>
+<span id="cb15-72"><a href="#cb15-72" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;&#39;</span><span class="kw">;</span></span>
+<span id="cb15-73"><a href="#cb15-73" aria-hidden="true" tabindex="-1"></a>      <span class="ex">initExtra</span> =<span class="st">&#39;&#39;</span></span>
+<span id="cb15-74"><a href="#cb15-74" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> no_beep</span>
+<span id="cb15-75"><a href="#cb15-75" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> auto_pushd</span>
+<span id="cb15-76"><a href="#cb15-76" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> pushd_ignore_dups</span>
+<span id="cb15-77"><a href="#cb15-77" aria-hidden="true" tabindex="-1"></a>        <span class="ex">setopt</span> inc_append_history</span>
+<span id="cb15-78"><a href="#cb15-78" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;&#39;</span><span class="kw">;</span></span>
+<span id="cb15-79"><a href="#cb15-79" aria-hidden="true" tabindex="-1"></a>      <span class="bu">history</span> = {</span>
+<span id="cb15-80"><a href="#cb15-80" aria-hidden="true" tabindex="-1"></a>        <span class="ex">extended</span> = true<span class="kw">;</span></span>
+<span id="cb15-81"><a href="#cb15-81" aria-hidden="true" tabindex="-1"></a>        <span class="ex">ignoreDups</span> = true<span class="kw">;</span></span>
+<span id="cb15-82"><a href="#cb15-82" aria-hidden="true" tabindex="-1"></a>        <span class="ex">save</span> = 1000000<span class="kw">;</span></span>
+<span id="cb15-83"><a href="#cb15-83" aria-hidden="true" tabindex="-1"></a>        <span class="ex">share</span> = true<span class="kw">;</span></span>
+<span id="cb15-84"><a href="#cb15-84" aria-hidden="true" tabindex="-1"></a>        <span class="fu">size</span> = 1000000<span class="kw">;</span></span>
+<span id="cb15-85"><a href="#cb15-85" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-86"><a href="#cb15-86" aria-hidden="true" tabindex="-1"></a>      <span class="ex">oh-my-zsh</span> = {</span>
+<span id="cb15-87"><a href="#cb15-87" aria-hidden="true" tabindex="-1"></a>        <span class="bu">enable</span> = true<span class="kw">;</span> </span>
+<span id="cb15-88"><a href="#cb15-88" aria-hidden="true" tabindex="-1"></a>        <span class="ex">plugins</span> = [</span>
+<span id="cb15-89"><a href="#cb15-89" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;autojump&quot;</span></span>
+<span id="cb15-90"><a href="#cb15-90" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;extract&quot;</span></span>
+<span id="cb15-91"><a href="#cb15-91" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;fzf&quot;</span></span>
+<span id="cb15-92"><a href="#cb15-92" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;git&quot;</span></span>
+<span id="cb15-93"><a href="#cb15-93" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;web-search&quot;</span></span>
+<span id="cb15-94"><a href="#cb15-94" aria-hidden="true" tabindex="-1"></a>        <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb15-95"><a href="#cb15-95" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-96"><a href="#cb15-96" aria-hidden="true" tabindex="-1"></a>      <span class="ex">plugins</span> =</span>
+<span id="cb15-97"><a href="#cb15-97" aria-hidden="true" tabindex="-1"></a>        <span class="bu">let</span></span>
+<span id="cb15-98"><a href="#cb15-98" aria-hidden="true" tabindex="-1"></a>          <span class="ex">autojump</span> = {</span>
+<span id="cb15-99"><a href="#cb15-99" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb15-100"><a href="#cb15-100" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb15-101"><a href="#cb15-101" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;wting&quot;</span><span class="kw">;</span></span>
+<span id="cb15-102"><a href="#cb15-102" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;autojump&quot;</span><span class="kw">;</span></span>
+<span id="cb15-103"><a href="#cb15-103" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;06e082c91805cb022900819b2e0881eeae780d58&quot;</span><span class="kw">;</span></span>
+<span id="cb15-104"><a href="#cb15-104" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = <span class="st">&quot;mrPMgwVkqOlKjvy1106MUKF7OlEtKdt8E9mqCg7U9+U=&quot;</span><span class="kw">;</span></span>
+<span id="cb15-105"><a href="#cb15-105" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-106"><a href="#cb15-106" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-107"><a href="#cb15-107" aria-hidden="true" tabindex="-1"></a>          <span class="ex">zsh-autosuggestions</span> = {</span>
+<span id="cb15-108"><a href="#cb15-108" aria-hidden="true" tabindex="-1"></a>            <span class="ex">name</span> = <span class="st">&quot;zsh-autosuggestions&quot;</span><span class="kw">;</span></span>
+<span id="cb15-109"><a href="#cb15-109" aria-hidden="true" tabindex="-1"></a>            <span class="ex">src</span> = pkgs.fetchFromGitHub {</span>
+<span id="cb15-110"><a href="#cb15-110" aria-hidden="true" tabindex="-1"></a>              <span class="ex">owner</span> = <span class="st">&quot;zsh-users&quot;</span><span class="kw">;</span></span>
+<span id="cb15-111"><a href="#cb15-111" aria-hidden="true" tabindex="-1"></a>              <span class="ex">repo</span> = <span class="st">&quot;zsh-autosuggestions&quot;</span><span class="kw">;</span></span>
+<span id="cb15-112"><a href="#cb15-112" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rev</span> = <span class="st">&quot;a411ef3e0992d4839f0732ebeb9823024afaaaa8&quot;</span><span class="kw">;</span></span>
+<span id="cb15-113"><a href="#cb15-113" aria-hidden="true" tabindex="-1"></a>              <span class="ex">sha256</span> = <span class="st">&quot;KLUYpUu4DHRumQZ3w59m9aTW6TBKMCXl2UcKi4uMd7w=&quot;</span><span class="kw">;</span></span>
+<span id="cb15-114"><a href="#cb15-114" aria-hidden="true" tabindex="-1"></a>            <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-115"><a href="#cb15-115" aria-hidden="true" tabindex="-1"></a>          <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-116"><a href="#cb15-116" aria-hidden="true" tabindex="-1"></a>        <span class="er">in</span> <span class="bu">[</span></span>
+<span id="cb15-117"><a href="#cb15-117" aria-hidden="true" tabindex="-1"></a>          autojump</span>
+<span id="cb15-118"><a href="#cb15-118" aria-hidden="true" tabindex="-1"></a>          # zsh-autosuggestions</span>
+<span id="cb15-119"><a href="#cb15-119" aria-hidden="true" tabindex="-1"></a>        <span class="bu">]</span><span class="er">;</span></span>
+<span id="cb15-120"><a href="#cb15-120" aria-hidden="true" tabindex="-1"></a>      <span class="er">shellAliases</span> <span class="er">=</span></span>
+<span id="cb15-121"><a href="#cb15-121" aria-hidden="true" tabindex="-1"></a>        <span class="kw">{</span></span>
+<span id="cb15-122"><a href="#cb15-122" aria-hidden="true" tabindex="-1"></a>          <span class="ex">h</span> = <span class="st">&quot;history&quot;</span><span class="kw">;</span></span>
+<span id="cb15-123"><a href="#cb15-123" aria-hidden="true" tabindex="-1"></a>          <span class="ex">hs</span> = <span class="st">&quot;history | grep&quot;</span><span class="kw">;</span></span>
+<span id="cb15-124"><a href="#cb15-124" aria-hidden="true" tabindex="-1"></a>          <span class="ex">hsi</span> = <span class="st">&quot;history | grep -i&quot;</span><span class="kw">;</span></span>
+<span id="cb15-125"><a href="#cb15-125" aria-hidden="true" tabindex="-1"></a>          <span class="ex">l</span>  = <span class="st">&quot;ls -CF&quot;</span><span class="kw">;</span></span>
+<span id="cb15-126"><a href="#cb15-126" aria-hidden="true" tabindex="-1"></a>          <span class="ex">la</span> = <span class="st">&quot;ls -A&quot;</span><span class="kw">;</span></span>
+<span id="cb15-127"><a href="#cb15-127" aria-hidden="true" tabindex="-1"></a>          <span class="ex">ll</span> = <span class="st">&quot;ls -alF&quot;</span><span class="kw">;</span></span>
+<span id="cb15-128"><a href="#cb15-128" aria-hidden="true" tabindex="-1"></a>          <span class="fu">ls</span> = <span class="st">&quot;ls --color=auto -F&quot;</span><span class="kw">;</span></span>
+<span id="cb15-129"><a href="#cb15-129" aria-hidden="true" tabindex="-1"></a>          <span class="ex">vi</span> = <span class="st">&quot;nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb15-130"><a href="#cb15-130" aria-hidden="true" tabindex="-1"></a>          <span class="ex">view</span> = <span class="st">&quot;nvim -R&quot;</span><span class="kw">;</span></span>
+<span id="cb15-131"><a href="#cb15-131" aria-hidden="true" tabindex="-1"></a>          <span class="ex">vim</span> = <span class="st">&quot;nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb15-132"><a href="#cb15-132" aria-hidden="true" tabindex="-1"></a>        <span class="kw">};</span></span>
+<span id="cb15-133"><a href="#cb15-133" aria-hidden="true" tabindex="-1"></a>      <span class="ex">zplug</span> = {</span>
+<span id="cb15-134"><a href="#cb15-134" aria-hidden="true" tabindex="-1"></a>        <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb15-135"><a href="#cb15-135" aria-hidden="true" tabindex="-1"></a>        <span class="ex">plugins</span> = [</span>
+<span id="cb15-136"><a href="#cb15-136" aria-hidden="true" tabindex="-1"></a>          <span class="kw">{</span> <span class="ex">name</span> = <span class="st">&quot;romkatv/powerlevel10k&quot;</span><span class="kw">;</span> <span class="ex">tags</span> = [ as:theme depth:1 ]<span class="kw">;</span> <span class="kw">}</span></span>
+<span id="cb15-137"><a href="#cb15-137" aria-hidden="true" tabindex="-1"></a>        <span class="ex">]</span><span class="kw">;</span></span>
+<span id="cb15-138"><a href="#cb15-138" aria-hidden="true" tabindex="-1"></a>      <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-139"><a href="#cb15-139" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-140"><a href="#cb15-140" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb15-141"><a href="#cb15-141" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span></code></pre></div>
+</div>
+</details>
+
+        </section>
+      </section>
+    </article>
+    <div class="u-mobile-only">
+      <div class="p-pagination">
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-30-starting-zsh-with-home-manager.html" class="c-media">
+        <span class="c-font-icon c-font-icon--angle-left"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Previous Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">前の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-30T17:18:32Z
+					</p>
+			    <h4 class="p-pagination__title">Nix学習備忘録Part 2-1: Home ManagerでZ Shellを導入する</h4>
+		    </div>
+      </a>
+		</button>
+	
+
+  
+	  <button class="p-pagination__media --disabled" type="button" disabled>
+      <div class="c-media__reverse">
+        <span class="c-font-icon c-font-icon--angle-right"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/No_Image.png" alt="No Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">次の記事:</h3>
+			    <p class="p-pagination__message">次の記事はありません。本ページが最も古い記事です。</p>
+		    </div>
+      </div>
+		</button>
+  
+</div>
+    </div>
+    <aside role="complementary" class="l-content__side">
+      <section class="c-inner">
+        <h1>
+          <a href="/">
+            <img class="c-icon" alt="PotassiumIodide" src="/images/icon.png"/>
+          </a>
+        </h1>
+        <p>Potassium Iodide</p>
+      </section>
+    </aside>
+  </div>
+  <div class="l-container u-pc-only">
+    <div class="p-pagination">
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-30-starting-zsh-with-home-manager.html" class="c-media">
+        <span class="c-font-icon c-font-icon--angle-left"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Previous Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">前の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-30T17:18:32Z
+					</p>
+			    <h4 class="p-pagination__title">Nix学習備忘録Part 2-1: Home ManagerでZ Shellを導入する</h4>
+		    </div>
+      </a>
+		</button>
+	
+
+  
+	  <button class="p-pagination__media --disabled" type="button" disabled>
+      <div class="c-media__reverse">
+        <span class="c-font-icon c-font-icon--angle-right"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/No_Image.png" alt="No Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">次の記事:</h3>
+			    <p class="p-pagination__message">次の記事はありません。本ページが最も古い記事です。</p>
+		    </div>
+      </div>
+		</button>
+  
+</div>
+  </div>
+</main>
+    <footer role="contentinfo" id="footer" class="l-footer">
+	<div class="l-center l-footer__primary">
+		<p class="p-footer__logo">
+      <a href="/" class="p-logo -secondary">
+        <img src="/images/logo.png" alt="ImamLab" class="p-logo__image" />
+      </a>
+		</p>
+		<p class="p-footer__message">Potassium Iodideの個人ページ ImamLab</p>
+		<ul class="l-cluster p-footer__bioList">
+      <li class="p-footer__bioItem"><a href="https://twitter.com/Aspirerator?t=l6BfFL0XJsC2pUjAnAcFsA&s=09" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--twitter" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">Twitter</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="https://github.com/PotassiumIodide/" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--github" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">GitHub</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="mailto:potassium.iodide28@gmail.com" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--mail" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">Email</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="/rss.xml" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--rss" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">RSS</span>
+      </a></li>
+		</ul>
+	</div>
+	<div class="l-center l-footer__secondary">
+		<p id="copyright" class="p-footer__copy">&copy; 2022 PotassiumIodide</p>
+		<p class="p-footer__message">
+			Site proudly generated by
+		  <a href="http://jaspervdj.be/hakyll" class="p-footer__link">Hakyll</a>
+		</p>
+	</div>
+</footer>
+
+    <script async src="/js/script.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="  crossorigin="anonymous"></script>
+    <script src="/js/animations.js"></script>
+    <script src="/js/accordion.js"></script>
+  </body>
+</html>

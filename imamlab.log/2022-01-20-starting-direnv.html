@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <title>Nix学習備忘録Part 1.5: direnvを導入する</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, initial-scale=1">
+    <meta name="description" content="自動で環境に出入りするdirenvの導入">
+    
+    <meta name="author" content="PotassiumIodide">
+    
+    
+    <meta name="keywords" content="Nix、direnv">
+    
+    <meta name="theme-color" content="#315086">
+
+    <meta property="og:site_name" content="ImamLab-web">
+    <meta property="og:title" content="Nix学習備忘録Part 1.5: direnvを導入する">
+    <meta property="og:url" content="https://PotassiumIodide.github.io/imamlab.log/2022-01-20-starting-direnv.html">
+    <meta property="og:description" content="自動で環境に出入りするdirenvの導入">
+    
+    <meta property="og:image" content="https://PotassiumIodide.github.io/images/nix_logo.png">
+    
+    
+    <meta property="og:type" content="article">
+    
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="ImamLab-web">
+    <meta property="twitter:title" content="Nix学習備忘録Part 1.5: direnvを導入する">
+    <meta property="twitter:description" content="自動で環境に出入りするdirenvの導入">
+    
+    <meta property="twitter:image" content="https://PotassiumIodide.github.io/images/nix_logo.png">
+    
+    
+    <meta property="twitter:creator" content="@Aspirerator">
+    
+
+    <link rel="icon" type="image/icon" href="/favicon.ico">
+    <link rel="canonical" href="https://PotassiumIodide.github.io/imamlab.log/2022-01-20-starting-direnv.html">
+    <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css"/>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/code.css" />
+    <!--[if lt IE 9]>
+      <script src="http://html5shiv.googlecode.com">
+    <![endif]-->
+
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script src="https://kit.fontawesome.com/2f54fe6e45.js" async></script> 
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/railscasts.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+  </head>
+  <body>
+    <header role="banner" class="l-header p-header">
+  <div class="l-container">
+    <div class="p-header__inner">
+      <h1 class="p-header__title">
+        <span class="u-visuallyHidden">ImamLab</span>
+        <a href="/" class="p-logo -primary">
+          <img src="/images/logo.png" alt="ImamLab" class="p-logo__image" />
+        </a>
+      </h1>
+      <nav role="navigation" class="p-header__nav js-drawerScope">
+  <button type="button" class="js-drawer c-button p-hamburger u-mobile-only" aria-controls="globalNav" aria-expanded="false">
+    <span class="p-hamburger__line">
+      <span class="u-visuallyHidden">メニューを開閉する</span>
+    </span>
+    <span class="p-hamburger__text"></span>
+  </button>
+  <div id="drawer" class="p-drawer" aria-hidden="true">
+    <h2 class="drawer__title">
+      <span class="u-visuallyHidden">
+        <span lang="en">Site Navigation</span>
+      </span>
+    </h2>
+    <p class="p-drawer__text">
+      <a href="#main" class="u-visuallyHidden">本文までスキップ</a>
+    </p>
+    <div id="globalNav" class="p-globalNav js-drawerTarget">
+      <ul class="p-globalNav__list">
+        <li class="p-globalNav__item"><a href="/" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--home with-text"></span>Home
+        </a></li>
+        <li class="p-globalNav__item"><a href="mailto:potassium.iodide28@gmail.com?subject=Work Inquiry" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--mail with-text"></span>Hire Me
+        </a></li>
+        <li class="p-globalNav__item"><a href="/atom.xml" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--rss with-text"></span>atom
+        </a></li>
+        <li class="p-globalNav__item"><a href="/rss.xml" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--rss with-text"></span>rss
+        </a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+    </div> <!-- /.p-header__inner -->
+  </div> <!-- /.l-container -->
+</header>
+    <main role="main" class="l-content">
+  <div class="l-content__col">
+    <article class="l-content__main p-post">
+      <section class="c-inner">
+        <header class="p-post__header">
+          <h1 id="post-title" class="p-post__title">
+            Nix学習備忘録Part 1.5: direnvを導入する
+          </h1>
+          <div class="p-post__timeInfo">
+            <small class="p-post__date">
+              <span class="c-font-icon c-font-icon--calendar with-text"></span>
+              2022-01-20
+            </small>
+            <small class="p-post__updated">
+              <span class="c-font-icon c-font-icon--update with-text"></span>
+              2022-01-20T01:52:48Z
+            </small>
+          </div>
+        </header>
+        <section class="p-post__body is-generatedBySSG">
+          <nav role="navigation" class="p-toc">
+  <h2 class="p-toc__header">
+    目次
+  </h2>
+  <div class="p-toc__contents">
+    <ul>
+    <li><a href="#はじめに"><span class="toc-section-number">1</span> はじめに</a></li>
+    <li><a href="#direnvとは"><span class="toc-section-number">2</span> direnvとは</a></li>
+    <li><a href="#direnvのインストール方法"><span class="toc-section-number">3</span> direnvのインストール方法</a></li>
+    <li><a href="#direnvの使用方法"><span class="toc-section-number">4</span> direnvの使用方法</a>
+    <ul>
+    <li><a href="#状況設定"><span class="toc-section-number">4.1</span> 状況設定</a></li>
+    <li><a href="#初期設定"><span class="toc-section-number">4.2</span> 初期設定</a></li>
+    <li><a href="#動作確認"><span class="toc-section-number">4.3</span> 動作確認</a></li>
+    <li><a href="#余談-pythonとvirtualenvの組み合わせでの使用例"><span class="toc-section-number">4.4</span> 余談: Pythonとvirtualenvの組み合わせでの使用例</a></li>
+    </ul></li>
+    <li><a href="#nixでdirenvを使用する"><span class="toc-section-number">5</span> Nixでdirenvを使用する</a></li>
+    <li><a href="#まとめ"><span class="toc-section-number">6</span> まとめ</a></li>
+    </ul>
+  </div>
+</nav>
+<h1 data-number="1" id="はじめに"><span class="header-section-number">1</span> はじめに</h1>
+<p>direnvは、仮想環境使ってる人など、 導入するとかなり作業が快適になります。</p>
+<p>Nix学習備忘録に入っていますが、 direnv自体はNixとは関係無く使えるので、 Nix興味無いって方もご一読頂けると幸いです。</p>
+<!--more-->
+<p>Nixでの利用方法は(大した分量ではありませんが)、 終盤に持ってきています。 Nixでの利用例は<a href="https://potassiumiodide.github.io/imamlab.log/2022-01-19-starting-nix.html">前回の記事</a> で作った<code>~/work/png2pdf</code>プロジェクトで動作確認をしますが、 読んでいなくても、それまでの内容で何となく何ができているのかはお分かり頂けるかと思います。</p>
+<p>また、direnvの使用をオススメはしますが、 今後Nixを使う上で必須というわけではないので、 必要無いと思った人は導入しなくても構いません。</p>
+<h1 data-number="2" id="direnvとは"><span class="header-section-number">2</span> direnvとは</h1>
+<p>CUI上で環境変数を切り替えることができるツールで、 ディレクトリごとに環境を作った際、そのディレクトリに <strong>入ったタイミングで環境変数を追加</strong>、 <strong>出たタイミングで環境変数を削除</strong>することができます。</p>
+<h1 data-number="3" id="direnvのインストール方法"><span class="header-section-number">3</span> direnvのインストール方法</h1>
+<p>今回も何番煎じになるのかわかりませんが、 インストール方法を記載します。</p>
+<p>他のサイトでは、エディタの指定をして、 <code>direnv edit</code>というコマンドで設定を書くようにしていますが、 直接編集することもできるので、私はエディタの設定はしていません<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</p>
+<dl id="nix-install-guide" class="p-accordion" role="tablist">
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="nix-install-guide" type="button">
+<span class="c-font-icon c-font-icon--apple with-text"></span> Mac
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>brewでインストール:</p>
+<pre><code>brew install direnv</code></pre>
+<p>シェルにフックされるように、bashの場合は<code>~/.bashrc</code>に</p>
+<div class="sourceCode" id="cb2" data-filepath="~/.bashrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">direnv</span> hook bash<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+<p>zshの場合は<code>~/.zshrc</code>に</p>
+<div class="sourceCode" id="cb3" data-filepath="~/.zshrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">direnv</span> hook zsh<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+と記述する。
+</dd>
+<dt class="p-accordion__title" role="tab">
+<button class="p-accordion__btn js-accordionTrigger" aria-expanded="false" aria-controls="nix-install-guide" type="button">
+<span class="c-font-icon c-font-icon--ubuntu with-text"></span> Ubuntu / <span class="c-font-icon c-font-icon--windows with-text"></span> Windows(WSL, Ubuntu)
+</button>
+</dt>
+<dd class="p-accordion__body js-accordionTarget" aria-hidden="true" role="tabpanel">
+<p>Ubuntu以外のLinuxについては(私が環境を再現できないため)説明を省きます。 以下のコマンドを実行する:</p>
+<pre><code>$ sudo apt install -y direnv</code></pre>
+<p>シェルにフックされるように、bashの場合は<code>~/.bashrc</code>に</p>
+<div class="sourceCode" id="cb5" data-filepath="~/.bashrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">direnv</span> hook bash<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+<p>zshの場合は<code>~/.zshrc</code>に</p>
+<div class="sourceCode" id="cb6" data-filepath="~/.zshrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">direnv</span> hook zsh<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+と記述する。
+</dd>
+</dl>
+<h1 data-number="4" id="direnvの使用方法"><span class="header-section-number">4</span> direnvの使用方法</h1>
+<h2 data-number="4.1" id="状況設定"><span class="header-section-number">4.1</span> 状況設定</h2>
+<p>まず、適当な作業用ディレクトリを作ります。</p>
+<pre><code>$ cd ~
+$ mkdir direnv_example &amp;&amp; cd $_</code></pre>
+<p>環境変数が削除されるのも確認したいので、 グローバルに環境変数<code>HOGE=hoge</code>を追記します。</p>
+<p>※ 後で削除する設定なので、書いたり消したりするのが面倒な方は、 「<code>HOGE=hoge</code>って環境変数を作って、 後でこれが自動で削除されるのを確認する」 程度を頭に入れて、適当に読み飛ばしてください。</p>
+<p>ここではbashで説明します。zshの場合はbashをすべてzshで読み替えて読んでください。</p>
+<pre><code># グローバル環境変数HOGEを.bashrcに記述
+$ echo &quot;export HOGE=hoge&quot; &gt;&gt; ~/.bashrc
+# .bashrcに記述されたことを確認
+$ cat ~/.bashrc | grep &quot;HOGE&quot;
+expoert HOGE=hoge
+# .bashrcを読み込んでいないので、まだ設定はされていない
+$ echo $HOGE
+# .bashrcを再読み込み
+$ source ~/.bashrc
+# 環境変数HOGEが使えるようになったことを確認
+$ echo $HOGE
+hoge</code></pre>
+<h2 data-number="4.2" id="初期設定"><span class="header-section-number">4.2</span> 初期設定</h2>
+<p>direnvの使用方法は至って簡単です。 環境変数を記述した<code>.envrc</code>というファイルを、 プロジェクトのルート置きます。 追加したい環境変数を<code>.bashrc</code>や<code>.zshrc</code>に記述するときと同様、 <code>export</code>で記述し、削除したい環境変数を<code>unset</code>で記述します。</p>
+<div class="sourceCode" id="cb9" data-filepath="~/direnv_example/.envrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">FUGA</span><span class="op">=</span>fuga</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="bu">unset</span> <span class="va">HOGE</span></span></code></pre></div>
+<p>保存すると、ターミナルに以下のような出力がされます:</p>
+<pre><code>direnv: error /home/username/direnv_example/.envrc is blocked. Run `direnv allow` to approve its content</code></pre>
+<p>direnvが<code>.envrc</code>を評価しようとしたら、 ブロックされたから、<code>direnv allow</code>で許可してと言っています。</p>
+<p>許可する前に、今の環境変数を確認しましょう。 <code>HOGE</code>はグローバル環境変数として記述しており、 <code>FUGA</code>は評価してない<code>.envrc</code>内に入っているので、 それぞれ評価すると次のようになります:</p>
+<pre><code># 現在direnv_exampleにいることを確認
+$ pwd
+/home/username/direnv_example
+# グローバル環境変数なので出力される
+$ echo $HOGE
+hoge
+# まだ評価してない.envrcに記述しているため何も出力されない
+$ echo $FUGA
+
+$</code></pre>
+<p>それでは、direnvに<code>.envrc</code>の評価を許可しましょう。</p>
+<pre><code>$ direnv allow
+direnv: loading ~/direnv_example/.envrc
+direnv: export +FUGA -HOGE</code></pre>
+<p>既に<code>export +FUGA -HOGE</code>と書かれています。 実際にグローバルで定義した環境変数<code>HOGE</code>が削除され、 <code>.envrc</code>で追加させた<code>FUGA</code>が追加されていることを確認しましょう。</p>
+<pre><code># グローバルで定義したHOGEは削除されたので、何も出力されない
+$ echo $HOGE
+
+# .envrcで追加したので、FUGAは出力される
+$ echo $FUGA
+fuga</code></pre>
+<h2 data-number="4.3" id="動作確認"><span class="header-section-number">4.3</span> 動作確認</h2>
+<p>direnvはディレクトリごとに<strong>自動で</strong>環境を有効/無効にできます。 <code>direnv_example</code>の<code>.envrc</code>に記述した内容は、 ディレクトリに<strong>出入りするだけ</strong>で有効/無効にできます。</p>
+<p>実際見てみましょう。</p>
+<pre><code># 現在の位置を確認
+$ pwd
+/home/username/direnv_example
+$ echo $HOGE
+
+$ echo $FUGA
+fuga
+# 親ディレクトリに移動
+$ cd ..
+direnv: unloading
+$ echo $HOGE
+hoge
+$ echo $FUGA
+
+# 再度direnv_exampleへ移動
+$ cd direnv_example
+direnv: loading ~/direnv_example/.envrc
+direnv: export +FUGA -HOGE
+$ echo $HOGE
+
+$ echo $FUGA
+fuga</code></pre>
+<p>ちゃんと、<code>direnv_example</code>に入ったら<code>.envrc</code>が評価され、 <code>direnv_example</code>から抜けたら元の環境に戻っていることがわかります。</p>
+<p>direnvの動作確認自体はこれで終わりなので、 <code>.bashrc</code>や<code>.zshrc</code>に記述した<code>export HOGE=hoge</code>は 消しておいてください。</p>
+<h2 data-number="4.4" id="余談-pythonとvirtualenvの組み合わせでの使用例"><span class="header-section-number">4.4</span> 余談: Pythonとvirtualenvの組み合わせでの使用例</h2>
+<p>Pythonユーザー以外には関係無いのと、 virtualenv使いこなしてる人には細かい説明は要らないと思うので簡単な説明に留めますが、 <code>.envrc</code>に以下のように記述しておけば、 仮想環境がディレクトリ移動で勝手に切り替わってくれるので、 <code>deactivate</code>し忘れる心配が無くなります。</p>
+<p>※ 仮想環境のディレクトリ名は<code>.venv</code>としています。</p>
+<div class="sourceCode" id="cb15" data-filepath=".envrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span></code></pre></div>
+<h1 data-number="5" id="nixでdirenvを使用する"><span class="header-section-number">5</span> Nixでdirenvを使用する</h1>
+<p>本題です。本題なんですが、話はすぐ終わります。</p>
+<p><code>.envrc</code>に記述する内容は次の一行だけです:</p>
+<div class="sourceCode" id="cb16" data-filepath=".envrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">use</span> nix</span></code></pre></div>
+<p>終わりです。お疲れ様でした。</p>
+<p>。。。</p>
+<p>。。。一応、前回作った<code>~/work/png2pdf</code>に、 上の内容の<code>.envrc</code>を記述してみます。 前節の例と同様、許可を求められるので、<code>direnv allow</code>で許可します。</p>
+<pre><code>$ pwd
+/home/username/work/png2pdf
+$ echo &quot;use nix&quot; &gt; .envrc
+direnv: error /home/username/work/png2pdf/.envrc is blocked. Run `direnv allow` to approve its content
+$ direnv allow
+direnv: loading ~/work/png2pdf/.envrc
+direnv: using nix
+direnv: using cached derivation
+direnv: eval /username/work/png2pdf/.direnv/cache-pre346058.bc59ba15b64
+direnv: export +AR +AS +CC +CONFIG_SHELL +CXX +DETERMINISTIC_BUILD+HOST_PATH +IN_NIX_SHELL +LD +NIX_BINTOOLS +NIX_BINTOOLS_WRAPPER_TARGET_HOST_x86_64_unknown_linux_gnu +NIX_BUILD_CORES +NIX_BUILD_TOP +NIX_CC +NIX_CC_WRAPPER_TARGET_HOST_x86_64_unknown_linux_gnu +NIX_CFLAGS_COMPILE +NIX_ENFORCE_NO_NATIVE +NIX_HARDENING_ENABLE +NIX_INDENT_MAKE +NIX_LDFLAGS +NIX_STORE +NM +OBJCOPY +OBJDUMP +PYTHONHASHSEED +PYTHONNOUSERSITE +PYTHONPATH +RANLIB +READELF +SIZE +SOURCE_DATE_EPOCH +STRINGS +STRIP +TEMP +TEMPDIR +TMP +XDG_DATA_DIRS +_PYTHON_HOST_PLATFORM +_PYTHON_SYSCONFIGDATA_NAME +__ETC_PROFILE_SOURCED +buildInputs +buildPhase +builder +configureFlags +depsBuildBuild +depsBuildBuildPropagated +depsBuildTarget +depsBuildTargetPropagated +depsHostHost +depsHostHostPropagated +depsTargetTarget +depsTargetTargetPropagated +doCheck +doInstallCheck +name +nativeBuildInputs +out +outputs +patches +phases +propagatedBuildInputs +propagatedNativeBuildInputs +shell +shellHook +stdenv +strictDeps +system ~PATH
+$</code></pre>
+<p>大量の環境変数が読み込まれていることがわかります。 Pythonと<code>img2pdf</code>が使えるかどうか確認してみましょう。</p>
+<pre><code>$ pwd
+/home/username/work/png2pdf
+$ python
+Python 3.9.9 (main, Nov 15 2021, 18:05:17)
+[GCC 10.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; import img2pdf
+&gt;&gt;&gt; img2pdf.__version__
+&#39;0.4.3&#39;
+&gt;&gt;&gt;</code></pre>
+<p>無事使えています。 ディレクトリを出て、pythonが使えなくなることを確認し、 再度入り直して、また使えるようになることを確認しましょう。</p>
+<pre><code>&gt;&gt;&gt; exit()
+$ cd ..
+direnv unloading
+$ python
+python: command not found
+$ cd png2pdf
+direnv: loading ~/work/png2pdf/.envrc
+direnv: using nix
+(以下略)
+$ python
+Python 3.9.9 (main, Nov 15 2021, 18:05:17)
+[GCC 10.3.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; import img2pdf
+&gt;&gt;&gt; img2pdf.__version__
+&#39;0.4.3&#39;
+&gt;&gt;&gt;</code></pre>
+<p>これで毎度毎度<code>nix-shell</code>を実行しなくても、 ディレクトリに入るだけで<code>img2pdf</code>が使えるPythonの環境に入ることができ、 ディレクトリを抜けるだけでクリーンな環境に戻ることができるようになりました。</p>
+<h1 data-number="6" id="まとめ"><span class="header-section-number">6</span> まとめ</h1>
+<p>direnvを使うことで、構築した環境に自動で出入りすることができるようになりました。</p>
+<p>次回の内容は未定ですが、</p>
+<ul>
+<li>PoetryとNixを用いてより優れた環境を構築する</li>
+<li>Nixで再構成が容易なユーザー環境を構築する</li>
+</ul>
+<p>のいずれかの方針で進めて行こうかと思います。</p>
+<p>もしかすると、行ったり来たりするかもしれませんが、 備忘録なので悪しからず。。。</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p> もしかしたら、Nix以外でdirenvを利用する場合に、 何か不都合が生じるのかもしれません。気になる方は、 他の記事同様、<code>~/.bashrc</code>や<code>~/.zshrc</code>に <code>export EDITOR=&lt;エディタ名&gt;</code>と記述してください。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+        </section>
+      </section>
+    </article>
+    <div class="u-mobile-only">
+      <div class="p-pagination">
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-19-starting-nix.html" class="c-media">
+        <span class="c-font-icon c-font-icon--angle-left"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Previous Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">前の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-19T23:22:36Z
+					</p>
+			    <h4 class="p-pagination__title">Nix学習備忘録Part 1: Nixに入門する</h4>
+		    </div>
+      </a>
+		</button>
+	
+
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-29-starting-home-manager.html" class="c-media__reverse">
+        <span class="c-font-icon c-font-icon--angle-right"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Next Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">次の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-29T15:09:32Z
+					</p>
+          <h4 class="p-pagination__title">Nix学習備忘録Part 2: Home Managerを導入する</h4>
+		    </div>
+      </a>
+		</button>
+	
+</div>
+    </div>
+    <aside role="complementary" class="l-content__side">
+      <section class="c-inner">
+        <h1>
+          <a href="/">
+            <img class="c-icon" alt="PotassiumIodide" src="/images/icon.png"/>
+          </a>
+        </h1>
+        <p>Potassium Iodide</p>
+      </section>
+    </aside>
+  </div>
+  <div class="l-container u-pc-only">
+    <div class="p-pagination">
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-19-starting-nix.html" class="c-media">
+        <span class="c-font-icon c-font-icon--angle-left"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Previous Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">前の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-19T23:22:36Z
+					</p>
+			    <h4 class="p-pagination__title">Nix学習備忘録Part 1: Nixに入門する</h4>
+		    </div>
+      </a>
+		</button>
+	
+
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-29-starting-home-manager.html" class="c-media__reverse">
+        <span class="c-font-icon c-font-icon--angle-right"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Next Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">次の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-29T15:09:32Z
+					</p>
+          <h4 class="p-pagination__title">Nix学習備忘録Part 2: Home Managerを導入する</h4>
+		    </div>
+      </a>
+		</button>
+	
+</div>
+  </div>
+</main>
+    <footer role="contentinfo" id="footer" class="l-footer">
+	<div class="l-center l-footer__primary">
+		<p class="p-footer__logo">
+      <a href="/" class="p-logo -secondary">
+        <img src="/images/logo.png" alt="ImamLab" class="p-logo__image" />
+      </a>
+		</p>
+		<p class="p-footer__message">Potassium Iodideの個人ページ ImamLab</p>
+		<ul class="l-cluster p-footer__bioList">
+      <li class="p-footer__bioItem"><a href="https://twitter.com/Aspirerator?t=l6BfFL0XJsC2pUjAnAcFsA&s=09" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--twitter" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">Twitter</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="https://github.com/PotassiumIodide/" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--github" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">GitHub</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="mailto:potassium.iodide28@gmail.com" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--mail" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">Email</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="/rss.xml" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--rss" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">RSS</span>
+      </a></li>
+		</ul>
+	</div>
+	<div class="l-center l-footer__secondary">
+		<p id="copyright" class="p-footer__copy">&copy; 2022 PotassiumIodide</p>
+		<p class="p-footer__message">
+			Site proudly generated by
+		  <a href="http://jaspervdj.be/hakyll" class="p-footer__link">Hakyll</a>
+		</p>
+	</div>
+</footer>
+
+    <script async src="/js/script.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="  crossorigin="anonymous"></script>
+    <script src="/js/animations.js"></script>
+    <script src="/js/accordion.js"></script>
+  </body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <title>Nix学習備忘録Part 2: Home Managerを導入する</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, initial-scale=1">
+    <meta name="description" content="ユーザー環境を宣言的に管理するHome Managerの導入">
+    
+    <meta name="author" content="PotassiumIodide">
+    
+    
+    <meta name="keywords" content="Nix、home-manager">
+    
+    <meta name="theme-color" content="#315086">
+
+    <meta property="og:site_name" content="ImamLab-web">
+    <meta property="og:title" content="Nix学習備忘録Part 2: Home Managerを導入する">
+    <meta property="og:url" content="https://PotassiumIodide.github.io/imamlab.log/2022-01-29-starting-home-manager.html">
+    <meta property="og:description" content="ユーザー環境を宣言的に管理するHome Managerの導入">
+    
+    <meta property="og:image" content="https://PotassiumIodide.github.io/images/nix_logo.png">
+    
+    
+    <meta property="og:type" content="article">
+    
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="ImamLab-web">
+    <meta property="twitter:title" content="Nix学習備忘録Part 2: Home Managerを導入する">
+    <meta property="twitter:description" content="ユーザー環境を宣言的に管理するHome Managerの導入">
+    
+    <meta property="twitter:image" content="https://PotassiumIodide.github.io/images/nix_logo.png">
+    
+    
+    <meta property="twitter:creator" content="@Aspirerator">
+    
+
+    <link rel="icon" type="image/icon" href="/favicon.ico">
+    <link rel="canonical" href="https://PotassiumIodide.github.io/imamlab.log/2022-01-29-starting-home-manager.html">
+    <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css"/>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/code.css" />
+    <!--[if lt IE 9]>
+      <script src="http://html5shiv.googlecode.com">
+    <![endif]-->
+
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script src="https://kit.fontawesome.com/2f54fe6e45.js" async></script> 
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/railscasts.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+  </head>
+  <body>
+    <header role="banner" class="l-header p-header">
+  <div class="l-container">
+    <div class="p-header__inner">
+      <h1 class="p-header__title">
+        <span class="u-visuallyHidden">ImamLab</span>
+        <a href="/" class="p-logo -primary">
+          <img src="/images/logo.png" alt="ImamLab" class="p-logo__image" />
+        </a>
+      </h1>
+      <nav role="navigation" class="p-header__nav js-drawerScope">
+  <button type="button" class="js-drawer c-button p-hamburger u-mobile-only" aria-controls="globalNav" aria-expanded="false">
+    <span class="p-hamburger__line">
+      <span class="u-visuallyHidden">メニューを開閉する</span>
+    </span>
+    <span class="p-hamburger__text"></span>
+  </button>
+  <div id="drawer" class="p-drawer" aria-hidden="true">
+    <h2 class="drawer__title">
+      <span class="u-visuallyHidden">
+        <span lang="en">Site Navigation</span>
+      </span>
+    </h2>
+    <p class="p-drawer__text">
+      <a href="#main" class="u-visuallyHidden">本文までスキップ</a>
+    </p>
+    <div id="globalNav" class="p-globalNav js-drawerTarget">
+      <ul class="p-globalNav__list">
+        <li class="p-globalNav__item"><a href="/" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--home with-text"></span>Home
+        </a></li>
+        <li class="p-globalNav__item"><a href="mailto:potassium.iodide28@gmail.com?subject=Work Inquiry" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--mail with-text"></span>Hire Me
+        </a></li>
+        <li class="p-globalNav__item"><a href="/atom.xml" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--rss with-text"></span>atom
+        </a></li>
+        <li class="p-globalNav__item"><a href="/rss.xml" class="p-globalNav__link">
+          <span class="c-font-icon c-font-icon--rss with-text"></span>rss
+        </a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+    </div> <!-- /.p-header__inner -->
+  </div> <!-- /.l-container -->
+</header>
+    <main role="main" class="l-content">
+  <div class="l-content__col">
+    <article class="l-content__main p-post">
+      <section class="c-inner">
+        <header class="p-post__header">
+          <h1 id="post-title" class="p-post__title">
+            Nix学習備忘録Part 2: Home Managerを導入する
+          </h1>
+          <div class="p-post__timeInfo">
+            <small class="p-post__date">
+              <span class="c-font-icon c-font-icon--calendar with-text"></span>
+              2022-01-29
+            </small>
+            <small class="p-post__updated">
+              <span class="c-font-icon c-font-icon--update with-text"></span>
+              2022-01-29T15:09:32Z
+            </small>
+          </div>
+        </header>
+        <section class="p-post__body is-generatedBySSG">
+          <nav role="navigation" class="p-toc">
+  <h2 class="p-toc__header">
+    目次
+  </h2>
+  <div class="p-toc__contents">
+    <ul>
+    <li><a href="#はじめに"><span class="toc-section-number">1</span> はじめに</a></li>
+    <li><a href="#home-managerとは"><span class="toc-section-number">2</span> Home Managerとは</a></li>
+    <li><a href="#home-mangerのインストール方法"><span class="toc-section-number">3</span> Home Mangerのインストール方法</a></li>
+    <li><a href="#homenixを更新する"><span class="toc-section-number">4</span> home.nixを更新する</a>
+    <ul>
+    <li><a href="#プログラムの追加"><span class="toc-section-number">4.1</span> プログラムの追加</a></li>
+    <li><a href="#パッケージの追加"><span class="toc-section-number">4.2</span> パッケージの追加</a></li>
+    <li><a href="#ひな形"><span class="toc-section-number">4.3</span> ひな形</a></li>
+    </ul></li>
+    <li><a href="#まとめ"><span class="toc-section-number">5</span> まとめ</a>
+    <ul>
+    <li><a href="#余談vscodeについて"><span class="toc-section-number">5.1</span> 余談(VSCodeについて)</a></li>
+    </ul></li>
+    </ul>
+  </div>
+</nav>
+<h1 data-number="1" id="はじめに"><span class="header-section-number">1</span> はじめに</h1>
+<p>Home Managerについては、既に日本語の記事がいくつか書かれているため、 ところどころ説明は省略します。</p>
+<!--more-->
+<blockquote>
+<p>参考にした記事:</p>
+<ul>
+<li><a href="https://nixos.wiki/wiki/Home_Manager">Home Manger - NixOS Wiki</a></li>
+<li><a href="https://qiita.com/hnakano863/items/47ba13633861be35bd83">Nixとhome-managerで宣言的に環境を管理する by @hnakano863 - Qiita</a></li>
+<li><a href="https://blog.hppd.dev/2021/06/12-dotfiles/">Nix home-managerを使ったdotfilesを詳解する by Aumy/おーみー - Happy Paddy</a></li>
+<li><a href="https://blog.ryota-ka.me/posts/2021/12/31/home-manager">dotfiles を Nix + Home Managerに移行した - blog.ryota-ka.me</a></li>
+</ul>
+</blockquote>
+<p>本記事は既にNixのインストールを完了していることを前提としています。 Nixをインストールしていない方は、 <a href="https://potassiumiodide.github.io/imamlab.log/2022-01-19-starting-nix.html">Nix学習備忘録Part 1: Nixに入門する</a>を参考にして、 Nixのインストールを完了してください。</p>
+<p>また、インストールする各種ソフトウェアの詳細な設定については、別途記事を設けることにします。 本記事では、取り敢えずHome Managerの概要と導入方法について簡単にまとめます。</p>
+<h1 data-number="2" id="home-managerとは"><span class="header-section-number">2</span> Home Managerとは</h1>
+<p><a href="https://github.com/nix-community/home-manager">Home Manger</a>は、 Nixパッケージマネージャを用いて、ユーザー環境を管理するためのシステムです。 これにより、</p>
+<ul>
+<li>ユーザープロファイルでソフトウェアを宣言的にインストールする</li>
+<li>ユーザーのホームディレクトリ内のドットファイルを管理する</li>
+</ul>
+<p>ことが可能になります。</p>
+<p><code>apt-get install</code>や、Homebrewを用いた<code>brew install</code>などで順次ソフトウェアをインストールした場合の、 他のマシンで同様のユーザー環境を設定することが難しいという問題を解決してくれます。</p>
+<h1 data-number="3" id="home-mangerのインストール方法"><span class="header-section-number">3</span> Home Mangerのインストール方法</h1>
+<p>NixOSや、Nix-Darwinを利用している方は、こちらでは動作確認ができないため、 <a href="https://github.com/nix-community/home-manager">Home ManagerのGitHub</a>を参考にして、 インストールしてください。</p>
+<p>以下を実行します(2つ目の<code>nix-channel --update</code>は数分掛かるかもしれません):</p>
+<pre><code>$ nix-channel --add https://github.com/nix-community/home-manager/archive/release-21.11.tar.gz home-manager
+$ nix-channel --update
+this derivation will be built:
+  /nix/store/rzr2p7ggvnij2j3j218mwx83c3f371xl-home-manager-21.11.drv
+building &#39;/nix/store/rzr2p7ggvnij2j3j218mwx83c3f371xl-home-manager-21.11.drv&#39;...
+# (数分後)
+unpacking channels...
+$</code></pre>
+<p><code>cat $SHELL</code>で、使用しているシェルを確認します。 私は(現時点では)bashを使っている<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>ので、<code>.bashrc</code>に以下を追記します:</p>
+<div class="sourceCode" id="cb2" data-filepath="~/.bashrc"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">NIX_PATH</span><span class="op">=</span><span class="va">$HOME</span>/.nix-defexpr/channels:/nix/var/nix/profiles/per-user/root/channels<span class="va">${NIX_PATH</span><span class="op">:+</span>:<span class="va">$NIX_PATH}</span></span></code></pre></div>
+<p><code>.bashrc</code>を再読み込みすることをお忘れなく。</p>
+<pre><code>$ source ~/.bashrc</code></pre>
+<p>次に、<code>nix-shell '&lt;home-manager&gt;' -A install</code>でHome Managerをインストールします:</p>
+<pre><code>$ nix-shell &#39;&lt;home-manager&gt;&#39; -A install
+warning: warning: Nix search path entry &#39;/nix/var/nix/profiles/per-user/root/channels&#39; does not exist, ignoring
+this derivation will be built:
+  /nix/store/32w0dk3fflv3hrpgsrx2923km7vf8gxl-home-manager.drv
+these 65 paths will be fetched (22.26 MiB download, 99.42 MiB unpacked):
+  /nix/store/1kfaw03fx9js1k71a2ch5rhvpa66hr51-boehm-gc-8.0.6
+  /nix/store/1x52sc2zzbsymi3ydk7a7i2c2qg8q6j1-aws-c-http-0.6.10
+# (中略)
+There are 175 unread and relevant news items.
+Read them by running the command &#39;home-manager news&#39;.
+
+
+All done! The home-manager tool should now be installed and you
+can edit
+
+    /home/username/.config/nixpkgs/home.nix
+
+to configure Home Manager. Run &#39;man home-configuration.nix&#39; to
+see all available options.</code></pre>
+<p>インストールが完了し、Home Managerの設定が、 <code>/home/username/.config/nixpkgs/home.nix</code>に記述できると教えてくれています。 説明の通り、<code>home.nix</code>に各種設定を記述していきます。</p>
+<h1 data-number="4" id="homenixを更新する"><span class="header-section-number">4</span> home.nixを更新する</h1>
+<p>Home Managerのインストールに成功すると、<code>home.nix</code>というファイルが<code>~/.config/nixpkgs</code>内に作成されます。</p>
+<details>
+<summary>
+初期状態の<code>home.nix</code>
+</summary>
+<div>
+<div class="sourceCode" id="cb5" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">config,</span> pkgs, ... }:</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Home Manager needs a bit of information about you and the</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># paths it should manage.</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.username</span> = <span class="st">&quot;username&quot;</span><span class="kw">;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.homeDirectory</span> = <span class="st">&quot;/home/username&quot;</span><span class="kw">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># This value determines the Home Manager release that your</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># configuration is compatible with. This helps avoid breakage</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># when a new Home Manager release introduces backwards</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># incompatible changes.</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">#</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># You can update Home Manager without changing this value. See</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the Home Manager release notes for a list of state version</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># changes in each release.</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Let Home Manager install and manage itself.</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs.home-manager.enable</span> = true<span class="kw">;</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+</div>
+</details>
+<h2 data-number="4.1" id="プログラムの追加"><span class="header-section-number">4.1</span> プログラムの追加</h2>
+<p>グローバル環境で設定ファイル等を管理するようなプログラムが<code>programs</code>に用意されています。 利用可能なプログラムは、 <a href="https://github.com/nix-community/home-manager/tree/master/modules/programs">Home ManagerのGitHub内のprograms</a> から確認できます。</p>
+<p>まず、試しに適当にNeoVimをインストールしてみましょう。 現段階では私の環境には入っていません:</p>
+<pre><code>$ which nvim
+$</code></pre>
+<p><code>home.nix</code>の<code>programs.home-manager.enable=true;</code>の下に<code>programs.neovim.enable=true;</code>と記述を追加してみます。</p>
+<details>
+<summary>
+NeoVimを有効にした<code>home.nix</code>
+</summary>
+<div>
+<div class="sourceCode" id="cb7" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">config,</span> pkgs, ... }:</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Home Manager needs a bit of information about you and the</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># paths it should manage.</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.username</span> = <span class="st">&quot;username&quot;</span><span class="kw">;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.homeDirectory</span> = <span class="st">&quot;/home/username&quot;</span><span class="kw">;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># This value determines the Home Manager release that your</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># configuration is compatible with. This helps avoid breakage</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># when a new Home Manager release introduces backwards</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># incompatible changes.</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">#</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># You can update Home Manager without changing this value. See</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the Home Manager release notes for a list of state version</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># changes in each release.</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Let Home Manager install and manage itself.</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs.home-manager.enable</span> = true<span class="kw">;</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs.neovim.enable</span> = true<span class="kw">;</span> <span class="co"># &lt;- この行を追加</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+</div>
+</details>
+<p>設定を反映させるためには、<code>home.nix</code>を保存し、ターミナルで<code>home-manager switch</code>を実行します。</p>
+<pre><code>$ home-manager switch
+these 12 derivations will be built:
+  /nix/store/3qqx1h8wdgzvxsa40m509r98mgz24rc8-neovim-ruby-env.drv
+  /nix/store/5gbdkj17wcb0bkd9dmix6dhhyap46362-python3-3.9.9-env.drv
+(中略)
+There are 175 unread and relevant news items.
+Read them by running the command &#39;home-manager news&#39;.
+$ which nvim
+/home/username/.nix-profile/bin/nvim</code></pre>
+<p>これでNeoVimが使えるようになりました！プラグイン等を設定することもできるのですが、 Home Managerというより、NeoVimの説明になるため、別の記事として書くことにします。</p>
+<h2 data-number="4.2" id="パッケージの追加"><span class="header-section-number">4.2</span> パッケージの追加</h2>
+<p>グローバル環境に入れておきたい<code>nix-env</code>等のコマンドでインストールするようなパッケージは、 <code>home.packages</code>に記述します。複数形であることからも推測できる通り、リストの形式で記述します。</p>
+<p>例として、<code>yarn</code>を追加してみましょう。例のごとく、私の環境にはまだインストールされていません。</p>
+<pre><code>$ which yarn
+$</code></pre>
+<p><code>home.stateVersion = "21.11";</code>の下に、 <code>home.packages = [ pkgs.yarn ];</code>という記述を追加します。</p>
+<details>
+<summary>
+<code>yarn</code>のインストールを追記した<code>home.nix</code>
+</summary>
+<div>
+<div class="sourceCode" id="cb10" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">config,</span> pkgs, ... }:</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Home Manager needs a bit of information about you and the</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># paths it should manage.</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.username</span> = <span class="st">&quot;username&quot;</span><span class="kw">;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.homeDirectory</span> = <span class="st">&quot;/home/username&quot;</span><span class="kw">;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># This value determines the Home Manager release that your</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># configuration is compatible with. This helps avoid breakage</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># when a new Home Manager release introduces backwards</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># incompatible changes.</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">#</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># You can update Home Manager without changing this value. See</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the Home Manager release notes for a list of state version</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># changes in each release.</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home.packages</span> = [ pkgs.yarn ]<span class="kw">;</span> <span class="co"># &lt;- この行を追加</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Let Home Manager install and manage itself.</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs.home-manager.enable</span> = true<span class="kw">;</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+</div>
+</details>
+<p>設定を反映させるために、<code>home.nix</code>を保存し、<code>home-manager switch</code>を実行します。</p>
+<pre><code>$ home-manager switch
+(略)
+$ which yarn
+/home/username/.nix-profile/bin/yarn</code></pre>
+<p>グローバル環境には必要ないなと思ったプログラムやパッケージは、 この<code>home.nix</code>から記述を消して再度<code>home-manager switch</code>を実行すれば消すことができます。</p>
+<h2 data-number="4.3" id="ひな形"><span class="header-section-number">4.3</span> ひな形</h2>
+<p>Home Managerをこの記事で入門する人のために、ひな形を置いておきます。 記述としては、大きく<code>home</code>と<code>programs</code>の2つに分かれ、毎回<code>home.</code>や<code>programs.</code>と書くのが面倒なので、 私はまとめて書いています。</p>
+<div class="sourceCode" id="cb12" data-filepath="~/.config/nixpkgs/home.nix"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span> <span class="ex">config,</span> pkgs, ... }:</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="ex">home</span> = {</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">homeDirectory</span> = builtins.getEnv <span class="st">&quot;HOME&quot;</span><span class="kw">;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="ex">packages</span> = with pkgs<span class="kw">;</span> <span class="bu">[</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>      cachix</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>      niv</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">]</span><span class="kw">;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="ex">stateVersion</span> = <span class="st">&quot;21.11&quot;</span><span class="kw">;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="ex">username</span> = builtins.getEnv <span class="st">&quot;USER&quot;</span><span class="kw">;</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">};</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="ex">programs</span> = {</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="ex">direnv</span> = {</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>      <span class="ex">nix-direnv.enable</span> = true<span class="kw">;</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">};</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">git</span> = {</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>      <span class="ex">userEmail</span> = <span class="st">&quot;your.github.account@gmail.com&quot;</span><span class="kw">;</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>      <span class="ex">userName</span> = <span class="st">&quot;yourGitHubUserName&quot;</span><span class="kw">;</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    <span class="ex">home-manager</span> = {</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>      <span class="bu">enable</span> = true<span class="kw">;</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>  <span class="er">}</span><span class="kw">;</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span></code></pre></div>
+<p><code>home.username</code>と<code>home.homeDirectory</code>は、関数を使って環境変数から読み取るように設定しています。</p>
+<p><code>packages</code>には、後で自分で記述する際に書きやすいよう、あっても邪魔にならないであろう、 <a href="https://www.cachix.org/">Cashix</a>と、<a href="https://github.com/nmattia/niv">niv</a> を適当に置いています。邪魔なら行を削除し、適当なパッケージを追加してください。</p>
+<p><code>programs</code>にも、<a href="https://potassiumiodide.github.io/imamlab.log/2022-01-20-starting-direnv.html">前回の記事</a>で紹介した<code>direnv</code>のインストールと、 <code>git</code>の設定について記述しています。<code>git</code>については、もっと細かく設定することもできるため、 詳細については<a href="https://github.com/nix-community/home-manager/blob/master/modules/programs/git.nix">GitHubのprograms/git.nix</a>を参照してください。</p>
+<h1 data-number="5" id="まとめ"><span class="header-section-number">5</span> まとめ</h1>
+<p>Home Managerを使うことで、ユーザー環境を宣言的に管理することができるようになりました。 例えば<code>home.nix</code>をGitHub等で管理しておけば、新しいPCへの移行はNixとHome Managerをインストールした上で、 <code>home.nix</code>の内容を移して<code>home-manager switch</code>すれば完了します。凄いですね。</p>
+<p>次回以降は、しばらくHome Managerをいじる話をする予定です。</p>
+<p>最近、Zsh × NeoVim × Tmuxの開発環境に入門したため、</p>
+<ul>
+<li>Home ManagerでZshのインストールし、入門する</li>
+<li>Home ManagerでNeoVimをインストールし、入門する</li>
+<li>Home ManagerでTmuxをインストールし、入門する</li>
+</ul>
+<p>という記事を書いてみようかなと考えています。</p>
+<h2 data-number="5.1" id="余談vscodeについて"><span class="header-section-number">5.1</span> 余談(VSCodeについて)</h2>
+<p>MacやLinuxをお使いの方は、VSCodeのインストールのインストールから、 拡張機能等までHome Managerで管理することができます。</p>
+<p>Windowsの場合、私はWSLでVSCodeを使っているのですが、このケースだと、 WindowsにダウンロードしたVSCodeを参照して使う形になります:</p>
+<pre><code>$ which code
+/mnt/c/Users/WindowsUserName/AppData/Local/Programs/Microsoft VS Code/bin/code</code></pre>
+<p>このため、Home Managerに記述してWSLにインストールされるVSCodeとは別物になってしまって、 拡張機能が管理できない問題にぶち当たっています。 Nixの方のVSCodeを使おうとすると、WSL内のGUIを使うことになり、<del>見た目が気持ち悪い</del>VSCodeが起動することになります。 (個人的に調べた限りではWSLでUbuntuではなくNixOSを使っている場合の解決策はありました。) もしWSL × Home Manager × VSCodeをお使いの方で、 この問題の解決策をご存じの方がいらっしゃいましたら、ご連絡頂けると非常に嬉しいです。</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>後にHome Managerを使用してzshに移行します。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+        </section>
+      </section>
+    </article>
+    <div class="u-mobile-only">
+      <div class="p-pagination">
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-20-starting-direnv.html" class="c-media">
+        <span class="c-font-icon c-font-icon--angle-left"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Previous Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">前の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-20T01:52:48Z
+					</p>
+			    <h4 class="p-pagination__title">Nix学習備忘録Part 1.5: direnvを導入する</h4>
+		    </div>
+      </a>
+		</button>
+	
+
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-30-starting-zsh-with-home-manager.html" class="c-media__reverse">
+        <span class="c-font-icon c-font-icon--angle-right"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Next Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">次の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-30T17:18:32Z
+					</p>
+          <h4 class="p-pagination__title">Nix学習備忘録Part 2-1: Home ManagerでZ Shellを導入する</h4>
+		    </div>
+      </a>
+		</button>
+	
+</div>
+    </div>
+    <aside role="complementary" class="l-content__side">
+      <section class="c-inner">
+        <h1>
+          <a href="/">
+            <img class="c-icon" alt="PotassiumIodide" src="/images/icon.png"/>
+          </a>
+        </h1>
+        <p>Potassium Iodide</p>
+      </section>
+    </aside>
+  </div>
+  <div class="l-container u-pc-only">
+    <div class="p-pagination">
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-20-starting-direnv.html" class="c-media">
+        <span class="c-font-icon c-font-icon--angle-left"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Previous Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">前の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-20T01:52:48Z
+					</p>
+			    <h4 class="p-pagination__title">Nix学習備忘録Part 1.5: direnvを導入する</h4>
+		    </div>
+      </a>
+		</button>
+	
+
+  
+	  <button class="p-pagination__media" type="button">
+      <a href="/imamlab.log/2022-01-30-starting-zsh-with-home-manager.html" class="c-media__reverse">
+        <span class="c-font-icon c-font-icon--angle-right"></span>
+		    <figure class="c-media__imageWrapper">
+			    <img class="c-media__image" src="/images/nix_logo.png" alt="Next Page Image" />
+		    </figure>
+		    <div class="c-media__body">
+          <h3 class="p-pagination__guide">次の記事:</h3>
+					<p class="p-pagination__date">
+            <span class="c-font-icon c-font-icon--calendar with-text"></span>
+						2022-01-30T17:18:32Z
+					</p>
+          <h4 class="p-pagination__title">Nix学習備忘録Part 2-1: Home ManagerでZ Shellを導入する</h4>
+		    </div>
+      </a>
+		</button>
+	
+</div>
+  </div>
+</main>
+    <footer role="contentinfo" id="footer" class="l-footer">
+	<div class="l-center l-footer__primary">
+		<p class="p-footer__logo">
+      <a href="/" class="p-logo -secondary">
+        <img src="/images/logo.png" alt="ImamLab" class="p-logo__image" />
+      </a>
+		</p>
+		<p class="p-footer__message">Potassium Iodideの個人ページ ImamLab</p>
+		<ul class="l-cluster p-footer__bioList">
+      <li class="p-footer__bioItem"><a href="https://twitter.com/Aspirerator?t=l6BfFL0XJsC2pUjAnAcFsA&s=09" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--twitter" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">Twitter</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="https://github.com/PotassiumIodide/" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--github" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">GitHub</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="mailto:potassium.iodide28@gmail.com" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--mail" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">Email</span>
+      </a></li>
+      <li class="p-footer__bioItem"><a href="/rss.xml" class="p-footer__link--icon" target="_blank" rel="noopener">
+        <span class="c-font-icon c-font-icon--rss" aria-hidden="true"></span>
+				<span class="u-visuallyHidden">RSS</span>
+      </a></li>
+		</ul>
+	</div>
+	<div class="l-center l-footer__secondary">
+		<p id="copyright" class="p-footer__copy">&copy; 2022 PotassiumIodide</p>
+		<p class="p-footer__message">
+			Site proudly generated by
+		  <a href="http://jaspervdj.be/hakyll" class="p-footer__link">Hakyll</a>
+		</p>
+	</div>
+</footer>
+
+    <script async src="/js/script.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="  crossorigin="anonymous"></script>
+    <script src="/js/animations.js"></script>
+    <script src="/js/accordion.js"></script>
+  </body>
+</html>
